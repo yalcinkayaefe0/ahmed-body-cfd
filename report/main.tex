@@ -12,18 +12,18 @@
 \usepackage{hyperref}
 \usepackage{cite}
 \usepackage{siunitx}
-\usepackage{array}
 \usepackage{float}
+
+\graphicspath{{../}}   % all paths relative to repo root
 
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
-\title{\textbf{Ahmed Body CFD Analysis}\\
-\large Mesh Independence Study and Validation Against Lienhart \& Becker (2003)}
-
+\title{\textbf{Ahmed Body CFD Analysis}\\[4pt]
+\large Mesh Independence Study and Wake Validation\\
+Against Lienhart \& Becker (2003)}
 \author{Efe Yalçınkaya}
 \date{\today}
 
-% ─────────────────────────────────────────────────────────────────────────────
 \begin{document}
 \maketitle
 \tableofcontents
@@ -32,73 +32,71 @@
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 
-The Ahmed body is a simplified bluff-body vehicle geometry introduced by Ahmed et al.~\cite{ahmed1984} that has become the standard benchmark for automotive aerodynamics CFD validation. Its well-documented flow field—particularly the slant-angle-dependent wake structure—makes it ideal for assessing turbulence model performance and mesh strategies.
+The Ahmed body~\cite{ahmed1984} is a simplified bluff-body geometry that has become the standard benchmark for automotive aerodynamics CFD validation. Its geometry is fully parametric and its flow field—particularly the slant-angle-dependent wake structure—is extensively documented in the open literature.
 
-This study focuses on the \textbf{25° slant angle} configuration, which exhibits a fully three-dimensional separated wake and is the most extensively documented case in the literature. The experimental reference is Lienhart \& Becker~\cite{lienhart2003}, who measured time-averaged velocity profiles in the near wake at $U_\infty = \SI{40}{m/s}$ ($Re \approx 2.77 \times 10^6$ based on body length $L = \SI{1.044}{m}$).
+This study uses the \textbf{25° slant angle} configuration validated against Lienhart \& Becker~\cite{lienhart2003} ($U_\infty = \SI{40}{m/s}$, $Re \approx 2.77\times10^6$, $C_d = 0.299 \pm 0.005$).
 
 \subsection{Objectives}
 \begin{enumerate}
-    \item Perform a three-level mesh independence study using the Grid Convergence Index (GCI) methodology of Celik et al.~\cite{celik2008}.
-    \item Validate the fine-mesh drag coefficient against the experimental reference $C_d = 0.299 \pm 0.005$.
-    \item Compare computed wake velocity profiles with the Lienhart \& Becker (2003) experimental data at four downstream stations.
+  \item Perform a three-level mesh independence study using the GCI methodology~\cite{celik2008}.
+  \item Validate the fine-mesh $C_d$ against the experimental reference.
+  \item Compare computed wake velocity profiles with Lienhart \& Becker (2003) at four downstream stations.
 \end{enumerate}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Geometry and Computational Domain}
 
-\subsection{Ahmed Body Geometry}
-The standard Ahmed body dimensions used in this study are listed in Table~\ref{tab:geometry}. A half-model is employed to reduce computational cost, with the symmetry plane at $z = 0$.
+\subsection{Ahmed Body}
 
-\begin{table}[H]
-\centering
-\caption{Ahmed body geometry parameters.}
-\label{tab:geometry}
-\begin{tabular}{lcc}
-\toprule
-Parameter & Symbol & Value \\
-\midrule
-Overall length & $L$ & \SI{1044}{mm} \\
-Height & $H$ & \SI{288}{mm} \\
-Width & $W$ & \SI{389}{mm} \\
-Ground clearance & $g$ & \SI{50}{mm} \\
-Slant angle & $\alpha$ & $25°$ \\
-Slant length (surface) & $l_s$ & \SI{244}{mm} \\
-\bottomrule
-\end{tabular}
-\end{table}
+Standard dimensions: $L=\SI{1044}{mm}$, $H=\SI{288}{mm}$, $W=\SI{389}{mm}$, ground clearance $g=\SI{50}{mm}$, slant angle $\alpha=25°$.
+A half-model is used with the symmetry plane at $z=0$.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{geometry/ahmed_body_isometric.png}
+    \caption{Isometric view — SpaceClaim}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{geometry/ahmed_body_side.png}
+    \caption{Side view}
+  \end{subfigure}
+  \caption{Ahmed body half-model geometry (25° slant).}
+  \label{fig:geometry}
+\end{figure}
 
 \subsection{Computational Domain}
-Domain dimensions are chosen following best-practice guidelines for bluff-body simulations (Table~\ref{tab:domain}). All distances are normalised by $H$.
 
-\begin{table}[H]
-\centering
-\caption{Computational domain dimensions.}
-\label{tab:domain}
-\begin{tabular}{lc}
-\toprule
-Direction & Size \\
-\midrule
-Upstream (inlet to body front) & $5H$ \\
-Downstream (body rear to outlet) & $15H$ \\
-Lateral (half-model, centre to side) & $5H$ \\
-Top (body roof to upper wall) & $5H$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+Domain dimensions follow best-practice guidelines for bluff-body external aerodynamics:
+upstream 5$H$, downstream 15$H$, lateral 5$H$, top 5$H$.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{geometry/domain_rear_dimensions.png}
+    \caption{Rear view — 4320\,mm downstream, 50\,mm ground clearance}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{geometry/domain_overview.png}
+    \caption{Overall domain}
+  \end{subfigure}
+  \caption{Computational domain in SpaceClaim.}
+  \label{fig:domain}
+\end{figure}
 
 \subsection{Boundary Conditions}
+
 \begin{table}[H]
 \centering
 \caption{Boundary conditions.}
-\label{tab:bc}
 \begin{tabular}{lll}
 \toprule
 Surface & Type & Value \\
 \midrule
 Inlet & Velocity inlet & $U_\infty = \SI{40}{m/s}$, $TI = 0.2\%$ \\
 Outlet & Pressure outlet & $0~\si{Pa}$ gauge \\
-Ground & Moving wall & $U = \SI{40}{m/s}$ (flow direction) \\
-Side/Top walls & Symmetry & — \\
+Ground & Moving wall & $U = \SI{40}{m/s}$ (streamwise) \\
+Side / Top & Symmetry & — \\
 Symmetry plane ($z=0$) & Symmetry & — \\
 Body surface & No-slip wall & $U = 0$ \\
 \bottomrule
@@ -106,58 +104,110 @@ Body surface & No-slip wall & $U = 0$ \\
 \end{table}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Mesh Methodology}
+\section{Mesh Strategy}
 
-\subsection{Meshing Strategy}
-Meshes were generated in ANSYS Fluent Meshing 2024 using the \emph{Watertight Geometry} workflow with a \textbf{poly-hexcore} volume fill. This approach provides structured hexahedral cells in the bulk flow with polyhedral cells near complex surfaces, balancing accuracy and cell count efficiency.
+\subsection{Workflow}
 
-Three mesh levels were generated (Table~\ref{tab:meshlevels}) by varying the global maximum cell size while keeping all other settings identical.
+Meshes were generated in ANSYS Fluent Meshing 2024 using the \emph{Watertight Geometry} workflow
+with a \textbf{poly-hexcore} volume fill.
 
-\begin{table}[H]
-\centering
-\caption{Mesh levels and key parameters.}
-\label{tab:meshlevels}
-\begin{tabular}{lccc}
-\toprule
-Level & Cells & Global max size & Min orthogonality \\
-\midrule
-Coarse & 369{,}552 & \SI{40}{mm} & 0.16 \\
-Medium & 837{,}508 & \SI{20}{mm} & 0.16 \\
-Fine   & 4{,}428{,}444 & \SI{12}{mm} (local \SI{5}{mm}) & 0.16 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/fluent_meshing_launcher.png}
+    \caption{Fluent Meshing launcher}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/watertight_workflow.png}
+    \caption{Watertight Geometry workflow}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/describe_geometry.png}
+    \caption{Describe Geometry settings}
+  \end{subfigure}
+  \caption{Fluent Meshing setup.}
+  \label{fig:meshing_workflow}
+\end{figure}
 
-\subsection{Boundary Layer Treatment}
-Wall functions ($y^+ \approx 15$–$30$) are employed throughout. The boundary layer inflation was sized using an aspect-ratio approach:
-\begin{itemize}
-    \item \textbf{Number of layers:} 8
-    \item \textbf{First aspect ratio:} 40
-    \item \textbf{Growth rate:} 1.2
-\end{itemize}
+\subsection{Boundary Conditions and Region Types}
 
-The theoretical first-cell height for $y^+ = 5$ (low-Re treatment) was estimated at $\Delta y \approx \SI{0.043}{mm}$ using flat-plate correlations at $Re = 2.77 \times 10^6$. The aspect-ratio sizing yields $\Delta y \approx \SI{0.3}$–$\SI{0.5}{mm}$ ($y^+ \approx 15$–$30$), appropriate for wall-function closure.
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/boundary_types.png}
+    \caption{Boundary types table}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/domain_car_position.png}
+    \caption{Car position inside domain (Fluent)}
+  \end{subfigure}
+  \caption{Named selections and boundary assignments.}
+  \label{fig:bc}
+\end{figure}
+
+\subsection{Boundary Layer}
+
+Wall functions ($y^+ \approx 15$–$30$) with aspect-ratio sizing:
+8~layers, first aspect ratio~40, growth rate~1.2.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/boundary_layer_settings.png}
+    \caption{BL offset method}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/boundary_layer_settings_2.png}
+    \caption{BL parameters}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.32\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/y_plus_calculation.png}
+    \caption{$y^+$ estimation — $Re = 2.77\times10^6$}
+  \end{subfigure}
+  \caption{Boundary layer settings and $y^+$ calculation.}
+  \label{fig:bl}
+\end{figure}
+
+\subsection{Volume Mesh and Surface Quality}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/volume_mesh_coarse_settings.png}
+    \caption{Poly-hexcore settings (coarse)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{mesh/screenshots/surface_mesh_ahmed_body.png}
+    \caption{Surface mesh on Ahmed body}
+  \end{subfigure}
+  \caption{Volume mesh generation. Min cell = 5\,mm, Max cell = 40/20/12\,mm for coarse/medium/fine.}
+  \label{fig:mesh}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{mesh/screenshots/fine_mesh_octree_warning.png}
+  \caption{Poly-hexcore octree constraint warning during fine mesh generation — max cell size
+  adjusted to next valid power-of-2 multiple of min cell size.}
+  \label{fig:octree_warning}
+\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Solver Settings}
 
-All three mesh levels use identical solver settings to isolate discretisation error from modelling differences.
-
 \begin{table}[H]
 \centering
-\caption{ANSYS Fluent solver configuration.}
-\label{tab:solver}
+\caption{ANSYS Fluent solver configuration (identical for all mesh levels).}
 \begin{tabular}{ll}
 \toprule
 Parameter & Setting \\
 \midrule
 Solver & Pressure-based, steady-state \\
-Turbulence model & $k$-$\omega$ SST (Menter 1994) \\
+Turbulence model & $k$-$\omega$ SST (Menter 1994~\cite{menter1994}) \\
 Pressure–velocity coupling & Coupled \\
 Spatial discretisation & Second-order upwind \\
-Turbulence numerics & Second-order upwind \\
-Convergence (residuals) & $< 10^{-5}$ \\
-Convergence (force monitors) & $\Delta C_d < 0.001$ over last 200 iterations \\
+Convergence — residuals & $< 10^{-5}$ \\
+Convergence — force monitors & $\Delta C_d < 0.001$ over last 200 iterations \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -166,46 +216,72 @@ Convergence (force monitors) & $\Delta C_d < 0.001$ over last 200 iterations \\
 \section{Mesh Independence Study}
 
 \subsection{GCI Methodology}
-Grid convergence was assessed using the Grid Convergence Index of Celik et al.~\cite{celik2008}. For three mesh levels with cell counts $N_1 > N_2 > N_3$ and corresponding drag coefficients $f_1, f_2, f_3$:
 
+For three meshes with cell counts $N_1 > N_2 > N_3$ and quantities $f_1, f_2, f_3$:
 \begin{align}
-r_{21} &= \left(\frac{N_1}{N_2}\right)^{1/3}, \quad
-r_{32} = \left(\frac{N_2}{N_3}\right)^{1/3} \\[4pt]
-p &= \frac{\left|\ln\left|\varepsilon_{32}/\varepsilon_{21}\right|\right|}{\ln r_{21}}, \quad
-\varepsilon_{ij} = f_j - f_i \\[4pt]
-f_\text{ext} &= f_1 + \frac{f_1 - f_2}{r_{21}^p - 1} \\[4pt]
-\text{GCI}_\text{fine} &= \frac{1.25\,|e_{21,a}|}{r_{21}^p - 1}
+  r_{21} &= \left(\tfrac{N_1}{N_2}\right)^{1/3}, \quad
+  p = \frac{\left|\ln|\varepsilon_{32}/\varepsilon_{21}|\right|}{\ln r_{21}}, \\
+  f_\text{ext} &= f_1 + \frac{f_1-f_2}{r_{21}^p-1}, \quad
+  \text{GCI}_\text{fine} = \frac{1.25\,|e_{21,a}|}{r_{21}^p-1}
 \end{align}
 
-\subsection{Results}
+\subsection{Results by Mesh Level}
+
+\subsubsection{Coarse Mesh — 370k cells}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.55\linewidth]{results/coarse/cd_cl_corrected.png}
+  \caption{Coarse mesh: $C_d = 0.299$, $C_l = -0.336$.}
+  \label{fig:coarse}
+\end{figure}
+
+\subsubsection{Medium Mesh — 837k cells}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.55\linewidth]{results/medium/cd_cl.png}
+  \caption{Medium mesh: $C_d = 0.280$, $C_l = -0.323$.}
+  \label{fig:medium}
+\end{figure}
+
+\subsubsection{Fine Mesh — 4.4M cells}
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{results/fine/screenshots/cd_convergence_early.png}
+    \caption{$C_d$ convergence history (early iterations)}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{results/fine/screenshots/cd_cl_final.png}
+    \caption{Final converged values}
+  \end{subfigure}
+  \caption{Fine mesh: $C_d = 0.270$, $C_l = -0.323$.}
+  \label{fig:fine}
+\end{figure}
+
+\subsection{GCI Summary}
 
 \begin{table}[H]
 \centering
-\caption{Mesh independence results.}
-\label{tab:gci}
+\caption{Mesh independence summary.}
 \begin{tabular}{lcccc}
 \toprule
-Mesh & Cells & $C_d$ & GCI (\%) & $C_d$ error vs. exp.\ (\%) \\
+Mesh & Cells & $C_d$ & GCI (\%) & Error vs.\ exp.\ (\%) \\
 \midrule
-Coarse & 369{,}552 & 0.2990 & 23.3 & 0.0 \\
-Medium & 837{,}508 & 0.2800 & — & 6.4 \\
-Fine   & 4{,}428{,}444 & 0.2699 & 5.3 & 9.7 \\
+Coarse & 369\,552 & 0.2990 & 23.3 & 0.0 \\
+Medium & 837\,508 & 0.2800 & — & 6.4 \\
+Fine   & 4\,428\,444 & 0.2699 & 5.3 & 9.7 \\
 \midrule
-\multicolumn{2}{l}{Richardson extrapolation} & 0.2584 & — & — \\
-\multicolumn{2}{l}{Lienhart (2003) reference} & $0.299 \pm 0.005$ & — & — \\
+Richardson extrapolation & — & 0.2584 & — & — \\
+Lienhart (2003) & — & $0.299\pm0.005$ & — & — \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The observed order of accuracy $p = 1.14$ is below the theoretical second-order value, attributed to inconsistent $y^+$ values across mesh levels caused by aspect-ratio-based boundary layer sizing—a known limitation of this approach.
-
-The fine-mesh GCI of 5.3\% indicates that the solution is approaching but has not fully reached mesh independence. The Richardson-extrapolated value $C_{d,\text{ext}} = 0.2584$ lies 13.6\% below the experimental reference, suggesting that numerical discretisation error is not the primary source of discrepancy. This points to turbulence-modelling limitations discussed in Section~\ref{sec:discussion}.
-
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/mesh_independence.pdf}
-\caption{Mesh independence convergence plot. Red dashed line: Lienhart \& Becker (2003) experimental $C_d$. Green dotted line: Richardson-extrapolated $C_d$. Error bar on fine mesh represents the GCI uncertainty band.}
-\label{fig:mesh_independence}
+  \centering
+  \includegraphics[width=0.85\textwidth]{report/figures/mesh_independence.pdf}
+  \caption{Mesh independence convergence. Red dashed: Lienhart experimental $C_d$. Green dotted: Richardson-extrapolated $C_d$. Error bar: GCI uncertainty on fine mesh.}
+  \label{fig:gci_plot}
 \end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -216,58 +292,50 @@ The fine-mesh GCI of 5.3\% indicates that the solution is approaching but has no
 \begin{table}[H]
 \centering
 \caption{Fine-mesh aerodynamic coefficients vs.\ experimental reference.}
-\label{tab:aero}
 \begin{tabular}{lccc}
 \toprule
-Quantity & CFD (fine mesh) & Lienhart (2003) & Error \\
+Quantity & CFD (fine) & Lienhart (2003) & Error \\
 \midrule
-$C_d$ & 0.2699 & $0.299 \pm 0.005$ & $-9.7\%$ \\
-$C_l$ & $-0.323$ & $-0.082 \pm 0.008$ & — \\
+$C_d$ & 0.2699 & $0.299\pm0.005$ & $-9.7\%$ \\
+$C_l$ & $-0.323$ & $-0.082\pm0.008$ & — \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Wake Velocity Profiles}
-Figure~\ref{fig:velocity_profiles} compares the computed streamwise velocity profiles with Lienhart \& Becker (2003) at four downstream stations ($x/H = 0.48,\,0.61,\,0.73,\,0.86$ measured from the body rear).
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{figures/velocity_profiles.pdf}
-\caption{Streamwise velocity profiles in the near wake. Red circles: Lienhart \& Becker (2003) experimental data. Blue line: CFD ($k$-$\omega$ SST, wall functions, fine mesh). MAE values are computed over $0 < y/H < 1.5$.}
-\label{fig:velocity_profiles}
+  \centering
+  \includegraphics[width=\textwidth]{report/figures/velocity_profiles.pdf}
+  \caption{Streamwise velocity profiles at $x/H = 0.48,\,0.61,\,0.73,\,0.86$ downstream of body rear.
+  Red circles: Lienhart \& Becker (2003). Blue line: CFD ($k$-$\omega$ SST, wall functions, fine mesh).}
+  \label{fig:velocity_profiles}
 \end{figure}
-
-The CFD captures the qualitative wake structure—velocity deficit near $y/H = 0$, shear-layer recovery, and approach to freestream above $y/H \approx 1$—but over-predicts the velocity deficit magnitude. The mean MAE across the four stations is approximately 0.30 in $U/U_\infty$ units.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
-\label{sec:discussion}
 
 \subsection{Drag Coefficient Underprediction}
-The 9.7\% underprediction of $C_d$ relative to the Lienhart reference is consistent with the known behaviour of $k$-$\omega$ SST with wall functions for separated bluff-body flows. Several contributing factors are identified:
-
+The 9.7\% $C_d$ underprediction is consistent with the literature for $k$-$\omega$ SST with wall functions on bluff bodies. Key causes:
 \begin{itemize}
-    \item \textbf{Wall function limitation:} At $y^+ \approx 15$–$30$, the boundary layer is resolved in the buffer region where neither the viscous sublayer nor the log-law is strictly valid. This introduces errors in near-wall velocity gradients and hence surface pressure.
-    \item \textbf{RANS modelling of separation:} The $k$-$\omega$ SST model is known to underpredict the size of the recirculation zone on the slant and base, leading to under-prediction of base pressure drag.
-    \item \textbf{Coarse mesh fortuitous accuracy:} The coarse mesh $C_d = 0.299$ coincidentally matches the experimental value due to numerical diffusion compensating the turbulence model's tendency to underpredict separation. This is not physical accuracy.
+  \item \textbf{Wall function buffer region:} $y^+\approx15$–$30$ sits between the viscous sublayer and log-law validity, introducing near-wall velocity gradient errors.
+  \item \textbf{RANS separation modelling:} $k$-$\omega$ SST underpredicts the slant recirculation zone, reducing base pressure drag.
+  \item \textbf{Coarse mesh fortuitous accuracy:} $C_d=0.299$ on the coarse mesh matches experiment due to numerical diffusion partially compensating modelling error — not physical accuracy.
 \end{itemize}
 
-\subsection{Lift Coefficient Discrepancy}
-The computed $C_l = -0.323$ differs significantly from $-0.082 \pm 0.008$. Lift is more sensitive to surface pressure distribution on the underbody and slant than drag. Wall-function treatment on the slant and coarse normal resolution in these regions are the primary causes.
-
 \subsection{Mesh Independence}
-The low observed order $p = 1.14$ (vs.\ theoretical $\approx 2$ for second-order schemes) is explained by inconsistent $y^+$ distribution across mesh levels. Aspect-ratio boundary layer sizing scales the first cell height with local cell size rather than flow gradients, so refining the volume mesh does not uniformly reduce near-wall discretisation error. A consistent $y^+$ across all levels (achievable with fixed first-layer thickness sizing) would be needed for a rigorous GCI study.
+Observed order $p=1.14$ (vs.\ theoretical $\approx2$) is attributed to inconsistent $y^+$ across mesh levels from aspect-ratio BL sizing. A fixed first-layer thickness would yield consistent $y^+$ and higher $p$.
+
+\subsection{Wake Profiles}
+The CFD qualitatively reproduces the wake S-curve (deficit near ground, recovery above car height) but over-predicts the velocity deficit magnitude. Mean MAE $\approx 0.30\,U/U_\infty$. Scale-resolving methods (LES/DES) would be required for quantitative accuracy.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusions}
 
-A three-level mesh independence study and experimental validation of Ahmed body aerodynamics (25° slant, $U_\infty = \SI{40}{m/s}$) was performed using ANSYS Fluent with the $k$-$\omega$ SST turbulence model and wall-function boundary layer treatment.
-
 \begin{itemize}
-    \item The fine mesh (4.4M poly-hexcore cells) achieves GCI = 5.3\%, indicating near but not full mesh independence.
-    \item Computed $C_d = 0.270$ underpredicts the Lienhart experimental value of 0.299 by 9.7\%, consistent with known $k$-$\omega$ SST limitations for separated bluff-body flows.
-    \item Wake velocity profiles qualitatively reproduce the experimental wake structure but over-predict the velocity deficit, with mean MAE $\approx 0.30\,U/U_\infty$.
-    \item Improved predictions would require: (a) low-Reynolds wall treatment with consistent $y^+ < 1$ across mesh levels, or (b) scale-resolving simulation (LES/DES).
+  \item Fine mesh GCI = 5.3\% — near but not fully mesh-independent.
+  \item $C_d = 0.270$ underpredicts Lienhart by 9.7\%, consistent with known $k$-$\omega$ SST + wall function limitations for separated bluff-body flow.
+  \item Wake profiles qualitatively correct; quantitative improvement requires low-$Re$ wall treatment ($y^+<1$) and consistent $y^+$ across mesh levels.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -284,7 +352,7 @@ Lienhart, H., \& Becker, S. (2003).
 SAE Technical Paper 2003-01-0656.
 
 \bibitem{celik2008}
-Celik, I.B., Ghia, U., Roache, P.J., et al. (2008).
+Celik, I.B. et al. (2008).
 \textit{Procedure for estimation and reporting of uncertainty due to discretization in CFD applications}.
 Journal of Fluids Engineering, 130(7), 078001.
 
