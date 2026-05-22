@@ -1,0 +1,58 @@
+# ANSYS project files
+*.wbpj
+*.wbpz
+*.agdb
+*.cmdb
+*.mechdb
+*.flprj
+*.cas.h5
+*.dat.h5
+*.cas.gz
+*.dat.gz
+*.trn
+*.out
+*.dxdb
+*.encas
+
+# Large result files
+*.cgns
+*.res
+*.rst
+*.pvd
+*.vtu
+*.vtk
+
+# ANSYS working directories
+dp0/
+user_files/
+progress_files/
+*.wbpj.bak/
+SYS/
+SYS-1/
+SYS-2/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# LaTeX build artifacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.fls
+report/*.fdb_latexmk
+report/*.synctex.gz
+report/*.bbl
+report/*.blg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep result CSV files
+!results/**/*.csv
+!results/**/*.txt
