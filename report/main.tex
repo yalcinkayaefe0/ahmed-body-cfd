@@ -14,7 +14,7 @@
 \usepackage{siunitx}
 \usepackage{float}
 
-\graphicspath{{../}}   % all paths relative to repo root
+\graphicspath{{./}}
 
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
@@ -138,7 +138,7 @@ with a \textbf{poly-hexcore} volume fill.
     \caption{Boundary types table}
   \end{subfigure}\hfill
   \begin{subfigure}{0.48\textwidth}
-    \includegraphics[width=\linewidth]{mesh/screenshots/domain_car_position.png}
+    \includegraphics[width=\linewidth]{results/coarse/domain_car_position.png}
     \caption{Car position inside domain (Fluent)}
   \end{subfigure}
   \caption{Named selections and boundary assignments.}
@@ -320,14 +320,14 @@ The 9.7\% $C_d$ underprediction is consistent with the literature for $k$-$\omeg
 \begin{itemize}
   \item \textbf{Wall function buffer region:} $y^+\approx15$–$30$ sits between the viscous sublayer and log-law validity, introducing near-wall velocity gradient errors.
   \item \textbf{RANS separation modelling:} $k$-$\omega$ SST underpredicts the slant recirculation zone, reducing base pressure drag.
-  \item \textbf{Coarse mesh fortuitous accuracy:} $C_d=0.299$ on the coarse mesh matches experiment due to numerical diffusion partially compensating modelling error — not physical accuracy.
+  \item \textbf{Coarse mesh result:} The coarse mesh happened to give $C_d=0.299$, which matches the experiment closely. This is likely a coincidence — the numerical diffusion from the coarser cells probably masks the underprediction that shows up more clearly on finer meshes.
 \end{itemize}
 
 \subsection{Mesh Independence}
 Observed order $p=1.14$ (vs.\ theoretical $\approx2$) is attributed to inconsistent $y^+$ across mesh levels from aspect-ratio BL sizing. A fixed first-layer thickness would yield consistent $y^+$ and higher $p$.
 
 \subsection{Wake Profiles}
-The CFD qualitatively reproduces the wake S-curve (deficit near ground, recovery above car height) but over-predicts the velocity deficit magnitude. Mean MAE $\approx 0.30\,U/U_\infty$. Scale-resolving methods (LES/DES) would be required for quantitative accuracy.
+The wake trend matches the experimental profile — velocity deficit near the ground, recovering towards freestream above car height — but the deficit is overpredicted compared to Lienhart. The mean MAE across the four stations is around $0.30\,U/U_\infty$. Better agreement would probably need a finer near-wall mesh with $y^+<1$, or a more advanced simulation approach like LES.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusions}
