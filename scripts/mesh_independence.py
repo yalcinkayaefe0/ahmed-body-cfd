@@ -13,9 +13,9 @@ import matplotlib.ticker as ticker
 
 # ── RESULTS: fill these after running simulations ──────────────────────────
 meshes = {
-    "coarse": {"cells": None, "Cd": None, "Cl": None},
-    "medium": {"cells": None, "Cd": None, "Cl": None},
-    "fine":   {"cells": None, "Cd": None, "Cl": None},
+    "coarse": {"cells": 369552, "Cd": 0.299, "Cl": None},
+    "medium": {"cells": 837508, "Cd": 0.280, "Cl": None},
+    "fine":   {"cells": 4428444, "Cd": 0.2699, "Cl": None},
 }
 
 # Lienhart & Becker (2003) experimental reference
@@ -73,8 +73,8 @@ def run():
     print("=" * 50)
     print(f"  Observed order of accuracy p = {p:.2f}")
     print(f"  Richardson-extrapolated Cd   = {Cd_ext:.4f}")
-    print(f"  GCI (fine→medium)            = {gci_fine*100:.2f}%")
-    print(f"  GCI (medium→coarse)          = {gci_coarse*100:.2f}%")
+    print(f"  GCI (fine->medium)           = {gci_fine*100:.2f}%")
+    print(f"  GCI (medium->coarse)         = {gci_coarse*100:.2f}%")
     print(f"  Lienhart reference Cd        = {CD_REF} ± {CD_REF_UNC}")
     err = abs(Cd[0] - CD_REF) / CD_REF * 100
     print(f"  Fine mesh vs. experiment     = {err:.2f}%")
@@ -85,30 +85,71 @@ def run():
     print("=" * 50)
 
     # Plot
-    fig, ax = plt.subplots(figsize=(7, 4))
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.size": 11,
+        "axes.linewidth": 1.2,
+        "xtick.direction": "in",
+        "ytick.direction": "in",
+        "xtick.major.size": 5,
+        "ytick.major.size": 5,
+    })
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
     cell_counts = [meshes[k]["cells"] for k in ("coarse", "medium", "fine")]
     cd_values   = [meshes[k]["Cd"]    for k in ("coarse", "medium", "fine")]
+    labels      = ["Coarse\n(370k)", "Medium\n(837k)", "Fine\n(4.4M)"]
 
-    ax.semilogx(cell_counts, cd_values, "o-", color="#2c7bb6",
-                linewidth=2, markersize=8, label="CFD (k-$\\omega$ SST)")
-    ax.axhline(CD_REF, color="#d7191c", linewidth=1.5, linestyle="--",
-               label=f"Lienhart et al. (2003): $C_d$ = {CD_REF}")
-    ax.fill_between([cell_counts[0]*0.5, cell_counts[-1]*2],
+    x_min = cell_counts[0] * 0.4
+    x_max = cell_counts[-1] * 2.5
+
+    # Experimental band
+    ax.fill_between([x_min, x_max],
                     CD_REF - CD_REF_UNC, CD_REF + CD_REF_UNC,
-                    color="#d7191c", alpha=0.15, label=f"Exp. uncertainty ±{CD_REF_UNC}")
-    ax.axhline(Cd_ext, color="#1a9641", linewidth=1.2, linestyle=":",
-               label=f"Richardson extrapolation: {Cd_ext:.4f}")
+                    color="#d7191c", alpha=0.12, zorder=1)
+    ax.axhline(CD_REF, color="#d7191c", linewidth=1.8, linestyle="--", zorder=2,
+               label=f"Lienhart et al. (2003):  $C_d$ = {CD_REF} $\\pm$ {CD_REF_UNC}")
 
+    # Richardson extrapolation
+    ax.axhline(Cd_ext, color="#1a9641", linewidth=1.4, linestyle=":", zorder=2,
+               label=f"Richardson extrapolation:  $C_d$ = {Cd_ext:.4f}")
+
+    # CFD data
+    ax.semilogx(cell_counts, cd_values, "o-", color="#2c7bb6",
+                linewidth=2, markersize=9, zorder=5,
+                label=f"CFD — $k$-$\\omega$ SST (wall functions)")
+
+    # Annotate each point
+    offsets = [(0, 10), (0, 10), (0, 10)]
+    for i, (x, y, lbl) in enumerate(zip(cell_counts, cd_values, labels)):
+        ax.annotate(f"$C_d$ = {y:.4f}\n{lbl}",
+                    xy=(x, y), xytext=(0, 18), textcoords="offset points",
+                    ha="center", fontsize=9, color="#2c7bb6",
+                    arrowprops=dict(arrowstyle="-", color="#2c7bb6", lw=0.8))
+
+    # GCI error bars on fine mesh
+    gci_abs = gci_fine * Cd[0]
+    ax.errorbar(cell_counts[-1], cd_values[-1], yerr=gci_abs,
+                fmt="none", color="#2c7bb6", capsize=6, linewidth=1.5,
+                label=f"GCI (fine mesh) = {gci_fine*100:.1f}%")
+
+    ax.set_xscale("log")
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(0.24, 0.33)
     ax.set_xlabel("Number of cells", fontsize=12)
     ax.set_ylabel("$C_d$", fontsize=12)
-    ax.set_title("Mesh Independence Study — Ahmed Body 25°", fontsize=13)
-    ax.legend(fontsize=9)
-    ax.grid(True, which="both", linestyle="--", alpha=0.4)
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/1e6:.1f}M"))
+    ax.set_title("Mesh Independence Study — Ahmed Body 25° Slant\n"
+                 "$k$-$\\omega$ SST, Wall Functions, Half Model",
+                 fontsize=12, pad=10)
+    ax.legend(fontsize=9, loc="upper right", framealpha=0.9)
+    ax.grid(True, which="both", linestyle="--", alpha=0.35, linewidth=0.8)
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(
+        lambda x, _: f"{x/1e6:.2f}M" if x >= 1e6 else f"{x/1e3:.0f}k"))
 
     plt.tight_layout()
     out = "report/figures/mesh_independence.pdf"
-    plt.savefig(out, dpi=150)
+    plt.savefig(out, dpi=200, bbox_inches="tight")
     print(f"\nFigure saved: {out}")
     plt.show()
 
