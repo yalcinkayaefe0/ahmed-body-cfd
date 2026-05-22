@@ -297,10 +297,22 @@ Lienhart (2003) & — & $0.299\pm0.005$ & — & — \\
 Quantity & CFD (fine) & Lienhart (2003) & Error \\
 \midrule
 $C_d$ & 0.2699 & $0.299\pm0.005$ & $-9.7\%$ \\
-$C_l$ & $-0.323$ & $-0.082\pm0.008$ & — \\
+$C_l$ & $-0.323$ & $-0.082\pm0.008$ & $-294\%^{\,\dagger}$ \\
 \bottomrule
+\multicolumn{4}{l}{\small $^{\dagger}$Not a direct comparison; see Section~\ref{sec:cl_disc}.}
 \end{tabular}
 \end{table}
+
+\subsection{Slant Surface Flow Visualisation}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{results/fine/slant_flow.png}
+  \caption{Slant surface flow on the fine mesh (4.4M cells): wall shear stress vectors and
+  streamlines coloured by velocity magnitude. The reattachment line and C-pillar vortex
+  footprints are visible on the rear ramp.}
+  \label{fig:slant_flow}
+\end{figure}
 
 \subsection{Wake Velocity Profiles}
 
@@ -322,6 +334,28 @@ The 9.7\% $C_d$ underprediction is consistent with the literature for $k$-$\omeg
   \item \textbf{RANS separation modelling:} $k$-$\omega$ SST underpredicts the slant recirculation zone, reducing base pressure drag.
   \item \textbf{Coarse mesh result:} The coarse mesh happened to give $C_d=0.299$, which matches the experiment closely. This is likely a coincidence — the numerical diffusion from the coarser cells probably masks the underprediction that shows up more clearly on finer meshes.
 \end{itemize}
+
+\subsection{Lift Coefficient Discrepancy}
+\label{sec:cl_disc}
+The computed $C_l = -0.323$ deviates substantially from the Lienhart (2003) experimental
+value of $-0.082\pm0.008$. Three factors are primarily responsible:
+\begin{itemize}
+  \item \textbf{Support strut absence:} The experimental model is mounted on four support
+  struts whose upwash partially unloads the underbody, reducing measured downforce.
+  The CFD half-model omits the struts entirely, leaving the underbody flow unobstructed
+  and generating significantly higher suction beneath the body.
+  \item \textbf{Symmetry plane constraint:} The symmetry condition at $z=0$ enforces a
+  perfectly symmetric flow field and suppresses the C-pillar vortex interaction present
+  in the full geometry. This alters the integrated pressure on the slant and consequently
+  the net lift.
+  \item \textbf{RANS slant pressure sensitivity:} $k$-$\omega$ SST underpredicts the slant
+  recirculation zone at 25°, producing a more attached pressure recovery over the rear
+  ramp and a lower static pressure on the top surface — increasing downforce relative to
+  experiment. Lift is a top-minus-bottom pressure integral and therefore accumulates these
+  near-wall errors more strongly than drag.
+\end{itemize}
+A meaningful $C_l$ validation would require a full-model simulation with support struts
+modelled explicitly and a low-$Re$ wall treatment ($y^+<1$) on the slant surface.
 
 \subsection{Mesh Independence}
 Observed order $p=1.14$ (vs.\ theoretical $\approx2$) is attributed to inconsistent $y^+$ across mesh levels from aspect-ratio BL sizing. A fixed first-layer thickness would yield consistent $y^+$ and higher $p$.
