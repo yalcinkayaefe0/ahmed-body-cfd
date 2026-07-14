@@ -34,7 +34,17 @@ Against Lienhart \& Becker (2003)}
 
 The Ahmed body~\cite{ahmed1984} is a simplified bluff-body geometry that has become the standard benchmark for automotive aerodynamics CFD validation. Its geometry is fully parametric and its flow field—particularly the slant-angle-dependent wake structure—is extensively documented in the open literature.
 
-This study uses the \textbf{25° slant angle} configuration validated against Lienhart \& Becker~\cite{lienhart2003} ($U_\infty = \SI{40}{m/s}$, $Re \approx 2.77\times10^6$, $C_d = 0.299 \pm 0.005$).
+This study uses the \textbf{25° slant angle} configuration at $U_\infty = \SI{40}{m/s}$
+($Re \approx 2.77\times10^6$). Two distinct experimental sources are used, and it is important not
+to conflate them:
+\begin{itemize}
+  \item \textbf{Force coefficients} are taken from Meile et al.~\cite{meile2016}, who measured
+  $C_d = 0.29883 \pm 0.5\%$ on the original geometry at \SI{40}{m/s} using a six-component force
+  balance, and Meile et al.~\cite{meile2011}, who report $C_l = 0.345$.
+  \item \textbf{Wake velocity profiles} are taken from Lienhart \& Becker~\cite{lienhart2003}, who
+  published LDA measurements in the wake. That work does \emph{not} report force coefficients, and
+  is therefore not a valid citation for $C_d$ or $C_l$.
+\end{itemize}
 
 \subsection{Objectives}
 \begin{enumerate}
@@ -217,12 +227,31 @@ Convergence — force monitors & $\Delta C_d < 0.001$ over last 200 iterations \
 
 \subsection{GCI Methodology}
 
-For three meshes with cell counts $N_1 > N_2 > N_3$ and quantities $f_1, f_2, f_3$:
+For three meshes with cell counts $N_1 > N_2 > N_3$ and quantities $f_1, f_2, f_3$, the grid
+refinement ratios and the differences between successive solutions are
+\begin{equation}
+  r_{21} = \left(\frac{N_1}{N_2}\right)^{1/3}, \qquad
+  r_{32} = \left(\frac{N_2}{N_3}\right)^{1/3}, \qquad
+  \varepsilon_{21} = f_2 - f_1, \qquad
+  \varepsilon_{32} = f_3 - f_2 .
+\end{equation}
+
+The apparent order of accuracy $p$ follows from Celik et al.~\cite{celik2008}:
 \begin{align}
-  r_{21} &= \left(\tfrac{N_1}{N_2}\right)^{1/3}, \quad
-  p = \frac{\left|\ln|\varepsilon_{32}/\varepsilon_{21}|\right|}{\ln r_{21}}, \\
-  f_\text{ext} &= f_1 + \frac{f_1-f_2}{r_{21}^p-1}, \quad
-  \text{GCI}_\text{fine} = \frac{1.25\,|e_{21,a}|}{r_{21}^p-1}
+  p &= \frac{1}{\ln r_{21}}
+       \left| \ln\left|\frac{\varepsilon_{32}}{\varepsilon_{21}}\right| + q(p) \right|, \\
+  q(p) &= \ln\!\left( \frac{r_{21}^{\,p} - s}{r_{32}^{\,p} - s} \right), \qquad
+  s = \operatorname{sign}\!\left(\frac{\varepsilon_{32}}{\varepsilon_{21}}\right).
+\end{align}
+
+The term $q(p)$ vanishes only for a uniform refinement ratio ($r_{21} = r_{32}$). In the present
+mesh family $r_{21} = 1.742$ and $r_{32} = 1.314$, so $q(p)$ must be retained; since $p$ appears on
+both sides of Eq.~(2), the system is solved by fixed-point iteration. The extrapolated value and
+the fine-grid convergence index are then
+\begin{align}
+  f_\text{ext}^{21} &= \frac{r_{21}^{\,p} f_1 - f_2}{r_{21}^{\,p} - 1}, \qquad
+  e_{21,a} = \left| \frac{f_1 - f_2}{f_1} \right|, \qquad
+  \text{GCI}_\text{fine} = \frac{1.25\, e_{21,a}}{r_{21}^{\,p} - 1} .
 \end{align}
 
 \subsection{Results by Mesh Level}
@@ -262,20 +291,39 @@ For three meshes with cell counts $N_1 > N_2 > N_3$ and quantities $f_1, f_2, f_
 
 \begin{table}[H]
 \centering
-\caption{Mesh independence summary.}
+\caption{Mesh independence summary. Apparent order $p = 3.53$ from the iterative solution of
+Eq.~(2); asymptotic range check $\text{GCI}_{32} / (r_{21}^{\,p}\,\text{GCI}_{21}) = 0.96 \approx 1$.}
 \begin{tabular}{lcccc}
 \toprule
 Mesh & Cells & $C_d$ & GCI (\%) & Error vs.\ exp.\ (\%) \\
 \midrule
-Coarse & 369\,552 & 0.2990 & 23.3 & 0.0 \\
-Medium & 837\,508 & 0.2800 & — & 6.4 \\
-Fine   & 4\,428\,444 & 0.2699 & 5.3 & 9.7 \\
+Coarse & 369\,552 & 0.2990 & — & $+0.3$ \\
+Medium & 837\,508 & 0.2800 & 5.25 & $-6.0$ \\
+Fine   & 4\,428\,444 & 0.2699 & \textbf{0.77} & $-9.4$ \\
 \midrule
-Richardson extrapolation & — & 0.2584 & — & — \\
-Lienhart (2003) & — & $0.299\pm0.005$ & — & — \\
+Richardson extrapolation & — & 0.2682 & — & $-10.0$ \\
+Meile et al.\ (2016) & — & $0.298\pm0.005$ & — & — \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\noindent
+\textbf{Stilt correction.} The error column above compares a \emph{stilt-free} CFD model against an
+experiment in which the body is mounted on four support stilts, and is therefore not a like-for-like
+comparison. Gutierrez et al.~\cite{gutierrez2020} decompose the drag by surface (their Table~3) and
+report a stilt contribution of $\Delta C_d = 0.0158$ (RSM) to $0.0245$ ($k$-$\omega$ Standard).
+Subtracting this from the measured value gives an effective stilt-free reference of
+$C_d = 0.2735$–$0.2822$, against which the present fine-mesh result of $0.2699$ deviates by only
+$-1.3\%$ to $-4.4\%$. This is the comparison the geometry actually supports.
+
+\noindent
+Because the apparent order $p = 3.53$ exceeds the formal second-order accuracy of the
+discretisation scheme, the GCI was recomputed with $p$ fixed at the theoretical value of 2, as
+recommended by Celik et al.~\cite{celik2008}. This yields $C_d^\text{ext} = 0.2649$ and
+$\text{GCI}_\text{fine} = 2.30\%$ — the same conclusion, with the fine-mesh numerical uncertainty
+remaining well below the deviation from experiment. The asymptotic range check is satisfied for
+$p = 3.53$ ($0.96$) but not for $p = 2$ ($1.68$), indicating the iteratively solved $p$ is the more
+self-consistent estimate for this mesh family.
 
 \begin{figure}[H]
   \centering
@@ -294,13 +342,14 @@ Lienhart (2003) & — & $0.299\pm0.005$ & — & — \\
 \caption{Fine-mesh aerodynamic coefficients vs.\ experimental reference.}
 \begin{tabular}{lccc}
 \toprule
-Quantity & CFD (fine) & Lienhart (2003) & Error \\
+Quantity & CFD (fine) & Experiment & Error \\
 \midrule
-$C_d$ & 0.2699 & $0.299\pm0.005$ & $-9.7\%$ \\
-$C_l$ & $-0.323$ & n/a$^{\,\dagger}$ & — \\
+$C_d$ (raw, vs.\ stilted model)      & 0.2699 & $0.298\pm0.005$~\cite{meile2016} & $-9.4\%$ \\
+$C_d$ (vs.\ stilt-corrected ref.)    & 0.2699 & $0.2735$–$0.2822$ & $-1.3\%$ to $-4.4\%$ \\
+$C_l$                                 & $-0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & see note \\
 \bottomrule
-\multicolumn{4}{l}{\small $^{\dagger}$Strut-free half-model $C_l$ is not directly comparable to the experimental value;}\\
-\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}see Section~\ref{sec:cl_disc}.}
+\multicolumn{4}{l}{\small $^{\dagger}$\textbf{Known issue — sign convention under review.} The experimental $C_l$ is}\\
+\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}\emph{positive}; the present result is negative with a near-identical magnitude. See Sec.~\ref{sec:cl_disc}.}
 \end{tabular}
 \end{table}
 
@@ -329,48 +378,88 @@ $C_l$ & $-0.323$ & n/a$^{\,\dagger}$ & — \\
 \section{Discussion}
 
 \subsection{Drag Coefficient Underprediction}
-The 9.7\% $C_d$ underprediction is consistent with the literature for $k$-$\omega$ SST with wall functions on bluff bodies. Key causes:
+Against the stilt-corrected reference the fine mesh underpredicts $C_d$ by $1.3$–$4.4\%$. The
+comparison against the raw measured value ($-9.4\%$) overstates the error, because it charges the
+stilt-free CFD geometry with drag that the experimental model's support stilts contributed.
+
+With a fine-mesh $\text{GCI}$ of only $0.77\%$, the \emph{numerical} uncertainty is an order of
+magnitude smaller than the remaining deviation. The residual discrepancy is therefore
+\textbf{modelling error, not discretisation error}, and is consistent with the literature for
+$k$-$\omega$ SST with wall functions on bluff bodies:
 \begin{itemize}
   \item \textbf{Wall function buffer region:} $y^+\approx15$–$30$ sits between the viscous sublayer and log-law validity, introducing near-wall velocity gradient errors.
-  \item \textbf{RANS separation modelling:} $k$-$\omega$ SST underpredicts the slant recirculation zone, reducing base pressure drag.
-  \item \textbf{Coarse mesh result:} The coarse mesh happened to give $C_d=0.299$, which matches the experiment closely. This is likely a coincidence — the numerical diffusion from the coarser cells probably masks the underprediction that shows up more clearly on finer meshes.
+  \item \textbf{RANS separation modelling:} $k$-$\omega$ SST underpredicts the slant recirculation zone at 25°, reducing base pressure drag.
+  \item \textbf{Non-monotonic error vs.\ experiment:} Against the raw measured value the coarse mesh
+  appears almost exact ($+0.3\%$) while the fine mesh appears worst ($-9.4\%$). This is an artefact
+  of compensating errors: excess numerical diffusion on the coarse mesh inflates the predicted drag,
+  which happens to offset both the model's underprediction and the missing stilt drag. Agreement
+  with experiment on an unconverged mesh is not evidence of a correct solution — the grid
+  convergence study is what exposes this.
 \end{itemize}
 
-\subsection{Lift Coefficient Discrepancy}
+\subsection{Lift Coefficient — Open Issue}
 \label{sec:cl_disc}
-The computed $C_l = -0.323$ deviates substantially from the Lienhart (2003) experimental
-value of $-0.082\pm0.008$. Three factors are primarily responsible:
-\begin{itemize}
-  \item \textbf{Support strut absence:} The experimental model is mounted on four support
-  struts whose upwash partially unloads the underbody, reducing measured downforce.
-  The CFD half-model omits the struts entirely, leaving the underbody flow unobstructed
-  and generating significantly higher suction beneath the body.
-  \item \textbf{Symmetry plane constraint:} The symmetry condition at $z=0$ enforces a
-  perfectly symmetric flow field and suppresses the C-pillar vortex interaction present
-  in the full geometry. This alters the integrated pressure on the slant and consequently
-  the net lift.
-  \item \textbf{RANS slant pressure sensitivity:} $k$-$\omega$ SST underpredicts the slant
-  recirculation zone at 25°, producing a more attached pressure recovery over the rear
-  ramp and a lower static pressure on the top surface — increasing downforce relative to
-  experiment. Lift is a top-minus-bottom pressure integral and therefore accumulates these
-  near-wall errors more strongly than drag.
-\end{itemize}
-A meaningful $C_l$ validation would require a full-model simulation with support struts
-modelled explicitly and a low-$Re$ wall treatment ($y^+<1$) on the slant surface.
+
+\textbf{This result is not yet validated and should not be used.} The present simulation returns
+$C_l = -0.323$, whereas the experimental value for the 25° slant is $C_l = +0.345$~\cite{meile2011}
+— \emph{positive}. Gutierrez et al.~\cite{gutierrez2020} obtain $+0.363$ ($k$-$\varepsilon$
+Realizable) and $+0.376$ ($k$-$\omega$ Standard), and explain the physical mechanism: at 25° the
+flow between the road and the underbody is slow, so the underbody static pressure remains higher
+than that on the upper surface, producing net positive lift.
+
+The magnitude of the present result ($0.323$) is within a few percent of the experimental value,
+while its sign is opposite. This pattern points to a \textbf{sign or direction-vector error in the
+lift force report definition} rather than a physical modelling deficiency: had the discrepancy been
+physical, the magnitude would not agree so closely. The lift direction vector in the Fluent force
+report must be verified against the geometry's vertical axis before any $C_l$ conclusion is drawn.
+
+No physical interpretation of the negative $C_l$ is offered here, because the most likely
+explanation is a post-processing error and any such interpretation would be unfounded.
 
 \subsection{Mesh Independence}
-Observed order $p=1.14$ (vs.\ theoretical $\approx2$) is attributed to inconsistent $y^+$ across mesh levels from aspect-ratio BL sizing. A fixed first-layer thickness would yield consistent $y^+$ and higher $p$.
+The apparent order $p = 3.53$ exceeds the formal second-order accuracy of the discretisation
+scheme. Such super-convergence typically indicates that the mesh family is not perfectly
+self-similar: the aspect-ratio-based boundary layer sizing means the prism layers do not refine at
+the same rate as the poly-hexcore freestream cells, so $y^+$ is not held constant across mesh
+levels. The refinement ratios themselves are also non-uniform ($r_{21}=1.742$ vs.\ $r_{32}=1.314$),
+which is precisely why the $q(p)$ term in Eq.~(3) cannot be neglected.
+
+Reporting the GCI at both the iterated $p = 3.53$ ($0.77\%$) and the theoretical $p = 2$ ($2.30\%$)
+brackets the numerical uncertainty; in both cases it remains well below the $\approx6\%$ modelling
+error, so the conclusions are insensitive to the choice. A fixed first-layer thickness and a
+uniform refinement ratio would yield a cleaner mesh family and an apparent order closer to 2.
 
 \subsection{Wake Profiles}
-The wake trend matches the experimental profile — velocity deficit near the ground, recovering towards freestream above car height — but the deficit is overpredicted compared to Lienhart. The mean MAE across the four stations is around $0.30\,U/U_\infty$. Better agreement would probably need a finer near-wall mesh with $y^+<1$, or a more advanced simulation approach like LES.
+
+\textbf{Caveat — the experimental data used in this comparison is not yet verified.} The reference
+profiles in \texttt{scripts/lienhart\_comparison.py} were entered manually as digitised values and
+have not been checked against the source dataset (ERCOFTAC Classic Collection, Case C.81). Until
+that check is done, the quantitative agreement reported below — including the MAE figure — must be
+treated as provisional.
+
+Subject to that caveat, the wake trend follows the expected shape: a velocity deficit near the
+ground recovering towards freestream above body height, with the deficit overpredicted relative to
+experiment. Better agreement would require a finer near-wall mesh ($y^+<1$) or a scale-resolving
+approach such as LES.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusions}
 
 \begin{itemize}
-  \item Fine mesh GCI = 5.3\% — near but not fully mesh-independent.
-  \item $C_d = 0.270$ underpredicts Lienhart by 9.7\%, consistent with known $k$-$\omega$ SST + wall function limitations for separated bluff-body flow.
-  \item Wake profiles qualitatively correct; quantitative improvement requires low-$Re$ wall treatment ($y^+<1$) and consistent $y^+$ across mesh levels.
+  \item Mesh independence is achieved on the fine mesh: $\text{GCI}_\text{fine} = 0.77\%$ ($2.30\%$
+  if $p$ is fixed at the theoretical second order), with the asymptotic range check satisfied
+  ($0.96$). The Richardson-extrapolated value is $C_d = 0.2682$.
+  \item Against a stilt-corrected experimental reference, $C_d = 0.270$ underpredicts by
+  $1.3$–$4.4\%$. Since the numerical uncertainty is below $1\%$, this residual is attributable to
+  \emph{modelling} error — the known limitations of $k$-$\omega$ SST with wall functions on
+  separated bluff-body flow — rather than to insufficient mesh resolution.
+  \item Comparing a stilt-free geometry directly against the measured value inflates the apparent
+  error to $9.4\%$. Likewise, the coarse mesh appears to agree almost exactly with experiment
+  ($+0.3\%$) purely through compensating errors. Both are reminders that a validation claim is only
+  as good as the like-for-like nature of the comparison behind it.
+  \item \textbf{Open items.} The computed $C_l$ has the wrong sign and is not yet validated
+  (Sec.~\ref{sec:cl_disc}); the digitised wake reference data has not been checked against the
+  ERCOFTAC source dataset. Neither result should be cited until resolved.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -385,6 +474,23 @@ SAE Technical Paper 840300.
 Lienhart, H., \& Becker, S. (2003).
 \textit{Flow and turbulence structure in the wake of a simplified car model}.
 SAE Technical Paper 2003-01-0656.
+\emph{[LDA wake velocity profiles; does not report force coefficients.]}
+
+\bibitem{meile2011}
+Meile, W., Brenn, G., Reppenhagen, A., \& Fuchs, A. (2011).
+\textit{Experiments and numerical simulations on the aerodynamics of the Ahmed body}.
+CFD Letters, 3(1), 32–39.
+
+\bibitem{meile2016}
+Meile, W., Ladinek, T., Brenn, G., Reppenhagen, A., \& Fuchs, A. (2016).
+\textit{Non-symmetric bi-stable flow around the Ahmed body}.
+International Journal of Heat and Fluid Flow, 57, 34–47.
+
+\bibitem{gutierrez2020}
+Chavez Gutierrez, J.E., Vera Duarte, L.E., Oliveira Jr., A.A.M., \& Cancino, L.R. (2020).
+\textit{The Ahmed body's external aerodynamics at 25° slant angle rear surface: a numerical
+analysis using CFD}.
+18th Brazilian Congress of Thermal Sciences and Engineering (ENCIT 2020), ENC-2020-0060.
 
 \bibitem{celik2008}
 Celik, I.B. et al. (2008).

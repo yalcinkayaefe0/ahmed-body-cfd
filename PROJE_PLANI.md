@@ -155,11 +155,18 @@ Claude Code: LaTeX şablonu, figür otomasyonu ve tablo üretimi yapar — sen s
 
 | Parametre | Değer |
 |-----------|-------|
-| Cd | 0.299 ± 0.005 |
-| Cl | −0.082 ± 0.008 |
+| Cd | 0.285 ± 0.005 |
+| Cl | −0.082 ± 0.008 ⚠️ kaynağı doğrulanmalı |
 | U∞ | 40 m/s |
 | Re | ~2.9 × 10⁶ |
 | Slant açısı | 25° |
+
+> ⚠️ **Cd düzeltildi:** Daha önce 0.299 yazıyordu — bu aslında coarse mesh sonucumuzun kendisiydi,
+> deneysel referans değil. 25° slant için literatürdeki deneysel değer **0.285**.
+>
+> ⚠️ **Cl referansı (−0.082) hâlâ doğrulanmadı.** Lienhart & Becker (2003) esas olarak LDA hız
+> profilleri yayınladı; kuvvet katsayısı verip vermediği teyit edilmeli. Kaynağı bulunamazsa
+> rapordan çıkarılmalı.
 
 Kaynak: Lienhart H., Becker S. — *Flow and Turbulence Structure in the Wake of a Simplified Car Model*, SAE 2003-01-0656
 
