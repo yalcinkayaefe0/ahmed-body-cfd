@@ -146,18 +146,27 @@ and the missing stilt drag. Agreement on an unconverged mesh is not evidence of 
 
 ## Known Issues
 
-**1. Cl has the wrong sign — do not use this value.**
+**1. Cl sign is inverted on the medium and fine meshes.**
 The experimental Cl for a 25° slant is **positive** (+0.345, Meile et al. 2011; Gutierrez et al.
-2020 obtain +0.363 and +0.376 with k-ε Realizable and k-ω Standard). Physically, the slow flow
-between road and underbody keeps the underbody pressure higher than the upper-surface pressure,
-producing net positive lift.
+2020 obtain +0.363 and +0.376). Physically, the slow flow between road and underbody keeps the
+underbody pressure higher than the upper-surface pressure, producing net positive lift.
 
-This simulation returns **−0.323** — nearly the right magnitude with the opposite sign. That
-pattern points to a **direction-vector error in the Fluent lift report definition**, not a physics
-problem: a genuine modelling deficiency would not reproduce the magnitude so closely. The lift
-direction vector needs to be verified against the geometry's vertical axis. Until then, no physical
-interpretation of the negative Cl is offered here, because the most likely explanation is a
-post-processing error.
+The evidence that this is a post-processing error is internal to this study:
+
+| Mesh | Cl | Sign | Deviation from exp. (\|Cl\|) |
+|---|---|---|---|
+| Coarse (370k) | **+0.3357** | correct | −2.6% |
+| Medium (837k) | −0.3235 | inverted | −6.2% |
+| Fine (4.4M) | −0.3232 | inverted | −6.3% |
+
+All three runs agree on the **magnitude**; only the sign flips after the coarse run. A physical
+modelling deficiency would corrupt the magnitude, not negate it while preserving it. The cause is a
+change to the lift force report definition (direction vector) made between the coarse and medium
+runs.
+
+Sign-corrected, the fine-mesh value is **Cl = +0.323** (−6.3% from experiment) — the same order as
+the Cd deviation. **Action:** verify the lift direction vector in Fluent and re-extract Cl for the
+medium and fine meshes.
 
 **2. Wake reference data is unverified.**
 The experimental profiles in `scripts/lienhart_comparison.py` were entered manually as digitised

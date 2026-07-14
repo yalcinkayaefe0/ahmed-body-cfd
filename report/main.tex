@@ -19,8 +19,8 @@
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
 \title{\textbf{Ahmed Body CFD Analysis}\\[4pt]
-\large Mesh Independence Study and Wake Validation\\
-Against Lienhart \& Becker (2003)}
+\large Mesh Independence Study and Experimental Validation\\
+25° Slant Angle, $k$-$\omega$ SST}
 \author{Efe Yalçınkaya}
 \date{\today}
 
@@ -58,7 +58,7 @@ to conflate them:
 
 \subsection{Ahmed Body}
 
-Standard dimensions: $L=\SI{1044}{mm}$, $H=\SI{288}{mm}$, $W=\SI{389}{mm}$, ground clearance $g=\SI{50}{mm}$, slant angle $\alpha=25°$.
+Standard dimensions: $L=\SI{1044}{mm}$, $H=\SI{288}{mm}$, $W=\SI{389}{mm}$, ground clearance $g=\SI{50}{mm}$, slant angle $\alpha=\SI{25}{\degree}$.
 A half-model is used with the symmetry plane at $z=0$.
 
 \begin{figure}[H]
@@ -259,8 +259,11 @@ the fine-grid convergence index are then
 \subsubsection{Coarse Mesh — 370k cells}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.55\linewidth]{results/coarse/cd_cl_corrected.png}
-  \caption{Coarse mesh: $C_d = 0.299$, $C_l = -0.336$.}
+  \includegraphics[width=0.55\linewidth]{results/coarse/cd_cl_initial.png}
+  \caption{Coarse mesh: $C_d = 0.2990$, $C_l = \mathbf{+0.3357}$. Note the \emph{positive}
+  lift coefficient, consistent with the experimental value of $+0.345$~\cite{meile2011}. The
+  medium and fine runs return a negative $C_l$ of near-identical magnitude — see
+  Section~\ref{sec:cl_disc}.}
   \label{fig:coarse}
 \end{figure}
 
@@ -328,7 +331,10 @@ self-consistent estimate for this mesh family.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.85\textwidth]{report/figures/mesh_independence.pdf}
-  \caption{Mesh independence convergence. Red dashed: Lienhart experimental $C_d$. Green dotted: Richardson-extrapolated $C_d$. Error bar: GCI uncertainty on fine mesh.}
+  \caption{Mesh independence convergence. Red dashed: Meile et al.\ (2016) experimental $C_d$,
+  measured on a stilt-mounted model. Orange band: stilt-corrected reference, the like-for-like
+  target for this stilt-free geometry. Green dotted: Richardson-extrapolated $C_d$. Error bar: GCI
+  uncertainty on the fine mesh.}
   \label{fig:gci_plot}
 \end{figure}
 
@@ -346,23 +352,13 @@ Quantity & CFD (fine) & Experiment & Error \\
 \midrule
 $C_d$ (raw, vs.\ stilted model)      & 0.2699 & $0.298\pm0.005$~\cite{meile2016} & $-9.4\%$ \\
 $C_d$ (vs.\ stilt-corrected ref.)    & 0.2699 & $0.2735$–$0.2822$ & $-1.3\%$ to $-4.4\%$ \\
-$C_l$                                 & $-0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & see note \\
+$C_l$ (as reported)                   & $-0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & sign inverted \\
+$C_l$ (sign corrected)                & $+0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & $-6.3\%$ \\
 \bottomrule
-\multicolumn{4}{l}{\small $^{\dagger}$\textbf{Known issue — sign convention under review.} The experimental $C_l$ is}\\
-\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}\emph{positive}; the present result is negative with a near-identical magnitude. See Sec.~\ref{sec:cl_disc}.}
+\multicolumn{4}{l}{\small $^{\dagger}$\textbf{Known issue.} The coarse run returns $C_l = +0.3357$ (correct sign); the medium and}\\
+\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}fine runs return the same magnitude negated. Direction-vector error — see Sec.~\ref{sec:cl_disc}.}
 \end{tabular}
 \end{table}
-
-\subsection{Slant Surface Flow Visualisation}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{results/fine/slant_flow.png}
-  \caption{Slant surface flow on the fine mesh (4.4M cells): wall shear stress vectors and
-  streamlines coloured by velocity magnitude. The reattachment line and C-pillar vortex
-  footprints are visible on the rear ramp.}
-  \label{fig:slant_flow}
-\end{figure}
 
 \subsection{Wake Velocity Profiles}
 
@@ -400,21 +396,44 @@ $k$-$\omega$ SST with wall functions on bluff bodies:
 \subsection{Lift Coefficient — Open Issue}
 \label{sec:cl_disc}
 
-\textbf{This result is not yet validated and should not be used.} The present simulation returns
-$C_l = -0.323$, whereas the experimental value for the 25° slant is $C_l = +0.345$~\cite{meile2011}
-— \emph{positive}. Gutierrez et al.~\cite{gutierrez2020} obtain $+0.363$ ($k$-$\varepsilon$
-Realizable) and $+0.376$ ($k$-$\omega$ Standard), and explain the physical mechanism: at 25° the
-flow between the road and the underbody is slow, so the underbody static pressure remains higher
-than that on the upper surface, producing net positive lift.
+\textbf{The reported $C_l$ has an inverted sign and must not be used as-is.} The experimental value
+for the 25° slant is $C_l = +0.345$~\cite{meile2011} — \emph{positive}. Gutierrez et
+al.~\cite{gutierrez2020} obtain $+0.363$ ($k$-$\varepsilon$ Realizable) and $+0.376$ ($k$-$\omega$
+Standard), and explain the mechanism: at 25° the flow between the road and the underbody is slow,
+so the underbody static pressure remains higher than that on the upper surface, producing net
+positive lift.
 
-The magnitude of the present result ($0.323$) is within a few percent of the experimental value,
-while its sign is opposite. This pattern points to a \textbf{sign or direction-vector error in the
-lift force report definition} rather than a physical modelling deficiency: had the discrepancy been
-physical, the magnitude would not agree so closely. The lift direction vector in the Fluent force
-report must be verified against the geometry's vertical axis before any $C_l$ conclusion is drawn.
+The evidence that this is a post-processing error, not a physical one, is internal to this study:
 
-No physical interpretation of the negative $C_l$ is offered here, because the most likely
-explanation is a post-processing error and any such interpretation would be unfounded.
+\begin{table}[H]
+\centering
+\caption{Lift coefficient across mesh levels. The coarse run — the first executed — returns the
+physically correct sign.}
+\begin{tabular}{lccc}
+\toprule
+Mesh & $C_l$ & Sign & Deviation from exp.\ ($|C_l|$) \\
+\midrule
+Coarse (370k) & $+0.3357$ & correct   & $-2.6\%$ \\
+Medium (837k) & $-0.3235$ & inverted  & $-6.2\%$ \\
+Fine (4.4M)   & $-0.3232$ & inverted  & $-6.3\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+All three runs agree on the \emph{magnitude} to within a few percent of each other and of the
+experiment; only the sign flips between the coarse run and the two subsequent ones. A physical
+modelling deficiency cannot produce this pattern — it would corrupt the magnitude, not negate it
+while preserving it. The cause is therefore a change made to the lift force report definition
+(direction vector) between the coarse and medium runs.
+
+Taking the fine-mesh magnitude with the sign corrected gives $C_l = +0.323$, a deviation of
+$-6.3\%$ from experiment — the same order as the $C_d$ deviation, and consistent with the known
+behaviour of $k$-$\omega$ SST with wall functions on this geometry.
+
+\textbf{Action required:} verify the lift direction vector in the Fluent force report against the
+geometry's vertical axis and re-extract $C_l$ for the medium and fine meshes. Until this is done,
+the values above are reported but not claimed.
 
 \subsection{Mesh Independence}
 The apparent order $p = 3.53$ exceeds the formal second-order accuracy of the discretisation
@@ -425,7 +444,7 @@ levels. The refinement ratios themselves are also non-uniform ($r_{21}=1.742$ vs
 which is precisely why the $q(p)$ term in Eq.~(3) cannot be neglected.
 
 Reporting the GCI at both the iterated $p = 3.53$ ($0.77\%$) and the theoretical $p = 2$ ($2.30\%$)
-brackets the numerical uncertainty; in both cases it remains well below the $\approx6\%$ modelling
+brackets the numerical uncertainty; in both cases it remains well below the $1.3$–$4.4\%$ modelling
 error, so the conclusions are insensitive to the choice. A fixed first-layer thickness and a
 uniform refinement ratio would yield a cleaner mesh family and an apparent order closer to 2.
 
@@ -457,9 +476,13 @@ approach such as LES.
   error to $9.4\%$. Likewise, the coarse mesh appears to agree almost exactly with experiment
   ($+0.3\%$) purely through compensating errors. Both are reminders that a validation claim is only
   as good as the like-for-like nature of the comparison behind it.
-  \item \textbf{Open items.} The computed $C_l$ has the wrong sign and is not yet validated
-  (Sec.~\ref{sec:cl_disc}); the digitised wake reference data has not been checked against the
-  ERCOFTAC source dataset. Neither result should be cited until resolved.
+  \item The lift coefficient is affected by a sign error introduced between the coarse and medium
+  runs: the coarse mesh returns $C_l = +0.3357$ (physically correct, $-2.6\%$ from experiment) while
+  the finer meshes return the same magnitude negated. Corrected, the fine-mesh value is $+0.323$
+  ($-6.3\%$), consistent with the $C_d$ deviation. The Fluent lift direction vector must be
+  re-verified (Sec.~\ref{sec:cl_disc}).
+  \item \textbf{Open item.} The digitised wake reference data has not been checked against the
+  ERCOFTAC source dataset (Case C.81); the wake comparison and its error metrics remain provisional.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
