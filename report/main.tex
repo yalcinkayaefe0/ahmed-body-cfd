@@ -50,7 +50,8 @@ to conflate them:
 \begin{enumerate}
   \item Perform a three-level mesh independence study using the GCI methodology~\cite{celik2008}.
   \item Validate the fine-mesh $C_d$ against the experimental reference.
-  \item Compare computed wake velocity profiles with Lienhart \& Becker (2003) at four downstream stations.
+  \item Establish the experimental wake reference (ERCOFTAC Case 082) as the basis for a subsequent
+  profile-by-profile comparison.
 \end{enumerate}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -360,15 +361,26 @@ $C_l$ (sign corrected)                & $+0.323$$^{\,\dagger}$ & $+0.345$~\cite{
 \end{tabular}
 \end{table}
 
-\subsection{Wake Velocity Profiles}
+\subsection{Experimental Wake Reference}
+
+The Lienhart \& Becker wake measurements are available in unmodified form in the ERCOFTAC Classic
+Collection, Case 082~\cite{ercoftac082}. The dataset provides LDA profiles on downstream planes at
+$x = 0$, $80$, $200$ and $\SI{500}{mm}$ behind the body ($x/H = 0$, $0.28$, $0.69$, $1.74$), with
+the origin at the rear face. These are reproduced in Figure~\ref{fig:ercoftac_wake} and are included
+in the repository (\texttt{data/ercoftac/}).
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{report/figures/velocity_profiles.pdf}
-  \caption{Streamwise velocity profiles at $x/H = 0.48,\,0.61,\,0.73,\,0.86$ downstream of body rear.
-  Red circles: Lienhart \& Becker (2003). Blue line: CFD ($k$-$\omega$ SST, wall functions, fine mesh).}
-  \label{fig:velocity_profiles}
+  \includegraphics[width=\textwidth]{report/figures/ercoftac_wake_reference.pdf}
+  \caption{Experimental streamwise velocity profiles on the symmetry plane, 25° slant. Note the
+  reverse flow at $x = \SI{80}{mm}$ ($U/U_\infty = -0.34$), the signature of the slant separation
+  bubble. Data: ERCOFTAC Case 082 (Lienhart, Becker \& Stoots).}
+  \label{fig:ercoftac_wake}
 \end{figure}
+
+\noindent
+A CFD-vs-experiment comparison against these profiles is \textbf{not presented in this revision};
+see Section~\ref{sec:wake_disc} for why.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
@@ -448,18 +460,31 @@ brackets the numerical uncertainty; in both cases it remains well below the $1.3
 error, so the conclusions are insensitive to the choice. A fixed first-layer thickness and a
 uniform refinement ratio would yield a cleaner mesh family and an apparent order closer to 2.
 
-\subsection{Wake Profiles}
+\subsection{Wake Profiles — Withdrawn}
+\label{sec:wake_disc}
 
-\textbf{Caveat — the experimental data used in this comparison is not yet verified.} The reference
-profiles in \texttt{scripts/lienhart\_comparison.py} were entered manually as digitised values and
-have not been checked against the source dataset (ERCOFTAC Classic Collection, Case C.81). Until
-that check is done, the quantitative agreement reported below — including the MAE figure — must be
-treated as provisional.
+An earlier revision of this report presented a CFD-vs-experiment wake comparison with an MAE metric.
+That comparison has been \textbf{withdrawn rather than corrected}, because neither side of it was
+sound:
 
-Subject to that caveat, the wake trend follows the expected shape: a velocity deficit near the
-ground recovering towards freestream above body height, with the deficit overpredicted relative to
-experiment. Better agreement would require a finer near-wall mesh ($y^+<1$) or a scale-resolving
-approach such as LES.
+\begin{itemize}
+  \item \textbf{The experimental reference was not the experiment.} The profiles had been entered
+  by hand at stations $x/H = 0.48$, $0.61$, $0.73$, $0.86$. The ERCOFTAC Case 082
+  dataset~\cite{ercoftac082} — the actual Lienhart \& Becker measurements — provides planes at
+  $x/H = 0$, $0.28$, $0.69$, $1.74$. The stations that were plotted do not exist in the experiment,
+  and the values did not match it: the real data shows reverse flow reaching $U/U_\infty = -0.34$ at
+  $x = \SI{80}{mm}$, an order of magnitude stronger than what had been tabulated.
+  \item \textbf{The CFD profiles have no recorded station.} The Fluent export
+  (\texttt{results/fine/velocity\_profiles.xy}) labels its four blocks
+  \texttt{wake\_x1}--\texttt{wake\_x4} and records no streamwise coordinate, so the location of the
+  computed profiles cannot be recovered from the file.
+\end{itemize}
+
+Correcting the reference alone would not have made the comparison valid, since the computed side
+remains unlocated. The remedy is to re-export the CFD symmetry-plane profiles at the four
+experimental stations and plot them against the ERCOFTAC data directly, which
+\texttt{scripts/ercoftac\_wake\_reference.py} is set up to do. This is left as the immediate next
+step; no wake validation claim is made in this revision.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusions}
@@ -481,8 +506,11 @@ approach such as LES.
   the finer meshes return the same magnitude negated. Corrected, the fine-mesh value is $+0.323$
   ($-6.3\%$), consistent with the $C_d$ deviation. The Fluent lift direction vector must be
   re-verified (Sec.~\ref{sec:cl_disc}).
-  \item \textbf{Open item.} The digitised wake reference data has not been checked against the
-  ERCOFTAC source dataset (Case C.81); the wake comparison and its error metrics remain provisional.
+  \item The wake comparison presented in an earlier revision has been withdrawn: its experimental
+  reference did not correspond to the actual measurements, and the computed profiles carry no
+  recorded station coordinate (Sec.~\ref{sec:wake_disc}). The genuine ERCOFTAC Case 082 data is now
+  included in the repository, and the comparison is the immediate next step rather than a claim made
+  here.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -508,6 +536,12 @@ CFD Letters, 3(1), 32–39.
 Meile, W., Ladinek, T., Brenn, G., Reppenhagen, A., \& Fuchs, A. (2016).
 \textit{Non-symmetric bi-stable flow around the Ahmed body}.
 International Journal of Heat and Fluid Flow, 57, 34–47.
+
+\bibitem{ercoftac082}
+ERCOFTAC Classic Collection, Case 082.
+\textit{Flow around a simplified car body (Ahmed body)} — experiments by H. Lienhart, S. Becker \&
+C. Stoots, LSTM Erlangen.
+\url{http://cfd.mace.manchester.ac.uk/ercoftac/doku.php?id=cases:case082}
 
 \bibitem{gutierrez2020}
 Chavez Gutierrez, J.E., Vera Duarte, L.E., Oliveira Jr., A.A.M., \& Cancino, L.R. (2020).

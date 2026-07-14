@@ -8,8 +8,9 @@
 - **Wake velocity profiles** — Lienhart & Becker (2003), SAE 2003-01-0656 (LDA). *This paper does not
   report force coefficients and must not be cited for Cd or Cl.*
 
-> ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The computed Cl
-> has the wrong sign, and the digitised wake reference data is unverified.
+> ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The Cl sign is
+> inverted on the medium/fine meshes, and the wake comparison has been withdrawn pending re-export
+> of the CFD profiles at the correct experimental stations.
 
 ---
 
@@ -110,10 +111,13 @@ and the missing stilt drag. Agreement on an unconverged mesh is not evidence of 
 
 ## Results
 
-### Coarse Mesh (370k cells — Cd = 0.299)
+### Coarse Mesh (370k cells — Cd = 0.299, Cl = **+0.336**)
+
+Note the **positive** Cl here — matching the experimental +0.345 to within 2.6%. The sign inverts on
+the finer meshes; see [Known Issues](#known-issues).
 
 <p align="center">
-  <img src="results/coarse/cd_cl_corrected.png" width="55%" alt="Coarse mesh Cd/Cl"/>
+  <img src="results/coarse/cd_cl_initial.png" width="55%" alt="Coarse mesh Cd/Cl"/>
 </p>
 
 ### Medium Mesh (837k cells — Cd = 0.280)
@@ -131,7 +135,7 @@ and the missing stilt drag. Agreement on an unconverged mesh is not evidence of 
 
 ---
 
-## Validation vs. Lienhart & Becker (2003)
+## Validation vs. Experiment
 
 | | CFD (fine mesh) | Experiment | Error |
 |-|----------------|------------|-------|
@@ -168,20 +172,28 @@ Sign-corrected, the fine-mesh value is **Cl = +0.323** (−6.3% from experiment)
 the Cd deviation. **Action:** verify the lift direction vector in Fluent and re-extract Cl for the
 medium and fine meshes.
 
-**2. Wake reference data is unverified.**
-The experimental profiles in `scripts/lienhart_comparison.py` were entered manually as digitised
-values and have **not** been checked against the source dataset (ERCOFTAC Classic Collection,
-Case C.81). The wake comparison and any error metric derived from it are provisional until that
-check is done.
+**2. The wake comparison was withdrawn (not corrected).**
+An earlier revision plotted CFD wake profiles against a hand-entered "Lienhart & Becker" table at
+stations x/H = 0.48, 0.61, 0.73, 0.86. Checking against the real source — **ERCOFTAC Classic
+Collection, [Case 082](http://cfd.mace.manchester.ac.uk/ercoftac/doku.php?id=cases:case082)** —
+showed two problems:
 
-### Wake Velocity Profiles
+- Those stations **do not exist** in the experiment. The measured planes are at x = 0, 80, 200,
+  500 mm (x/H = 0, 0.28, 0.69, 1.74). The tabulated values didn't match the real data either: the
+  experiment shows reverse flow reaching **U/U∞ = −0.34** at x = 80 mm, an order of magnitude
+  stronger than what had been tabulated.
+- The Fluent export (`results/fine/velocity_profiles.xy`) labels its blocks `wake_x1`–`wake_x4` and
+  **records no streamwise coordinate**, so the computed profiles cannot be located either.
 
-Streamwise velocity at x/H = 0.48, 0.61, 0.73, 0.86 downstream of body rear.  
-Red circles: Lienhart (2003) experimental data. Blue line: CFD k-ω SST.
+Fixing the reference alone wouldn't have made the comparison valid, so it was removed. The genuine
+ERCOFTAC data is now in `data/ercoftac/` and `scripts/ercoftac_wake_reference.py` reads it directly.
+**Next step:** re-export the CFD symmetry-plane profiles at the four experimental stations.
 
-<p align="center">
-  <img src="results/fine/screenshots/velocity_profiles_final.png" width="90%" alt="Wake velocity profiles vs Lienhart"/>
-</p>
+### Experimental Wake Reference
+
+The genuine Lienhart & Becker wake measurements (ERCOFTAC Case 082) are included in
+`data/ercoftac/`, unmodified. Measurement planes: x = 0, 80, 200, 500 mm behind the body.
+A CFD comparison against them is the next step — see [Known Issues](#known-issues).
 
 ---
 
@@ -191,12 +203,12 @@ Red circles: Lienhart (2003) experimental data. Blue line: CFD k-ω SST.
 |--------|---------|
 | `scripts/y_plus_calculator.py` | First cell height for target y⁺ |
 | `scripts/mesh_independence.py` | GCI calculation + convergence plot → `report/figures/mesh_independence.pdf` |
-| `scripts/lienhart_comparison.py` | Wake profile validation → `report/figures/velocity_profiles.pdf` |
+| `scripts/ercoftac_wake_reference.py` | Plots the experimental wake reference from `data/ercoftac/` (ERCOFTAC Case 082) |
 
 ```bash
 python scripts/y_plus_calculator.py
 python scripts/mesh_independence.py
-python scripts/lienhart_comparison.py   # requires results/fine/velocity_profiles.xy
+python scripts/ercoftac_wake_reference.py
 ```
 
 ---
@@ -221,7 +233,9 @@ ahmed-body-cfd/
 ├── scripts/
 │   ├── y_plus_calculator.py
 │   ├── mesh_independence.py
-│   └── lienhart_comparison.py
+│   └── ercoftac_wake_reference.py
+├── data/
+│   └── ercoftac/             # ERCOFTAC Case 082 experimental data (unmodified)
 └── report/
     ├── main.tex
     └── figures/
