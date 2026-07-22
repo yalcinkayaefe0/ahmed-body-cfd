@@ -241,9 +241,15 @@ requires $>0.01$ and regards $>0.1$ as good. High aspect ratios are expected wit
 \toprule
 Metric & Coarse (370k) & Medium (837k) & Fine (4.4M) \\
 \midrule
-Min.\ orthogonal quality & 0.1638 & 0.1637 & 0.1537 \\
-Max.\ aspect ratio       & \textbf{122.21} & \textbf{122.72} & \textbf{122.21} \\
+Min.\ orthogonal quality  & 0.1638 & 0.1637 & 0.1537 \\
+Max.\ tangent skewness$^\ast$ & 6.022 & 6.025 & 6.427 \\
+Max.\ aspect ratio        & \textbf{122.21} & \textbf{122.72} & \textbf{122.21} \\
 \bottomrule
+\multicolumn{4}{l}{\small $^\ast$Fluent's tangent-skewness measure, as reported by
+\texttt{/mesh/quality}. This is}\\
+\multicolumn{4}{l}{\small \phantom{$^\ast$}not the conventional skewness metric bounded on $[0,1]$
+and should not be read}\\
+\multicolumn{4}{l}{\small \phantom{$^\ast$}against the usual $<0.95$ guideline.}
 \end{tabular}
 \end{table}
 
@@ -286,6 +292,7 @@ boundary-layer stack.
 \begin{table}[H]
 \centering
 \caption{ANSYS Fluent solver configuration (identical for all mesh levels).}
+\label{tab:solver}
 \begin{tabular}{ll}
 \toprule
 Parameter & Setting \\
@@ -569,8 +576,22 @@ coefficient already flagged in Sec.~\ref{sec:cl_disc}.
 
 The fine mesh was therefore rerun with the ground boundary set to a stationary wall, restarted from
 the converged moving-ground solution with \textbf{no other setting altered}. The ground condition is
-thus the single isolated variable, and the comparison becomes like-for-like. The solution
-reconverged within 70--80 iterations to residuals of order $10^{-6}$.
+thus the single isolated variable, and the comparison becomes like-for-like.
+
+\textbf{Convergence of the restart.} Starting from an already converged field, the solution settled
+to residuals of order $10^{-6}$ within 70--80 iterations, satisfying the residual criterion of
+Table~\ref{tab:solver} with an order of margin. The force-monitor criterion in that table is,
+however, defined over a 200-iteration window, which a run this short does not span. The coefficients
+were steady over the iterations available, but the criterion \emph{as written} has not been
+demonstrated across a full window; this is a reporting gap rather than evidence of a convergence
+failure, and closing it requires only a longer continuation run.
+
+The point deserves care because Meile et al.~\cite{meile2016} document a non-symmetric bi-stable
+wake mode for this geometry, and a change to the underbody flow is exactly the sort of perturbation
+that could excite a switch between states. It should be noted that the present half-model with an
+imposed symmetry plane \emph{cannot} represent an asymmetric mode by construction: such a state is
+excluded by the boundary condition rather than resolved and rejected. This is a limitation of the
+half-model idealisation in its own right, independent of the restart length.
 
 \begin{table}[H]
 \centering
@@ -592,14 +613,23 @@ $C_d$ deviation & $-1.3\%$ to $-4.4\%$ & \textbf{within range} & — \\
 \noindent
 Matching the ground condition improves both coefficients. $C_l$ moves from $-6.3\%$ to $+3.0\%$ of
 the measured value — less than half the deviation, and now marginally above rather than below
-experiment. It also coincides with $+0.355$, the value reported by an independent stationary-ground
-reference computation for this geometry. $C_d$ rises into the stilt-corrected experimental band
-rather than sitting below it.
+experiment. $C_d$ rises into the stilt-corrected experimental band rather than sitting below it.
 
 The relative magnitudes are themselves evidence for the mechanism. $C_l$ changes by $9.9\%$ against
 only $3.4\%$ for $C_d$: lift is roughly three times more sensitive to the ground state than drag.
 This is precisely what Strachan et al.~\cite{strachan2007} would predict, since the underbody
 pressure field their moving plane perturbs acts principally on the \emph{vertical} force.
+
+\textbf{An asymmetry in the two comparisons should be stated plainly.} $C_d$ is compared against a
+stilt-corrected reference, because the stilts contribute measurable drag that this stilt-free
+geometry cannot produce. No equivalent correction is applied to $C_l$, which is compared against the
+raw measured value. The justification is that the stilts are slender vertical cylinders: their
+\emph{direct} contribution to the vertical force is small, whereas their contribution to the
+streamwise force is not. They do, however, disturb the underbody flow, so an indirect effect on lift
+cannot be excluded. Gutierrez et al.~\cite{gutierrez2020} resolve the drag contribution by surface
+but do not provide a correspondingly usable lift decomposition, so no correction is attempted here.
+The $+3.0\%$ figure therefore carries this residual uncertainty, and the $C_l$ comparison is
+marginally less like-for-like than the $C_d$ one.
 
 The wider methodological point is that a substantial share of what could readily have been
 attributed to ``$k$-$\omega$ SST limitations'' was in fact a boundary-condition mismatch. With the

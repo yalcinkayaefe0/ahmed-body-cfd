@@ -89,7 +89,11 @@ Reported by Fluent (`/mesh/quality`) on the volume mesh:
 | Metric | Coarse (370k) | Medium (837k) | Fine (4.4M) | Acceptable |
 |---|---|---|---|---|
 | Min orthogonal quality | 0.1638 | 0.1637 | 0.1537 | > 0.01 required, > 0.1 good |
+| Max tangent skewness \* | 6.022 | 6.025 | 6.427 | see note |
 | Max aspect ratio | **122.21** | **122.72** | **122.21** | High values expected in prism layers |
+
+> \* Fluent's *tangent-skewness* measure as printed by `/mesh/quality` — **not** the conventional
+> skewness bounded on [0, 1], so it must not be read against the usual < 0.95 guideline.
 
 **The aspect ratio is essentially identical across all three levels — despite a 12× increase in cell
 count.** This is not a coincidence but a direct measurement of how the mesh family was built: the
@@ -276,7 +280,7 @@ underbody pressure that sets **Cl**, the very coefficient flagged in issue 1.
 
 **Resolution.** The fine mesh was rerun with the ground set to a stationary wall, restarted from the
 converged moving-ground solution with **no other setting changed**, so the ground condition is the
-single isolated variable. It reconverged in 70–80 iterations (residuals ~10⁻⁶):
+single isolated variable. It settled to residuals ~10⁻⁶ in 70–80 iterations:
 
 | | Moving ground | **Stationary ground** | Experiment | Deviation (stationary) |
 |---|---|---|---|---|
@@ -286,13 +290,20 @@ single isolated variable. It reconverged in 70–80 iterations (residuals ~10⁻
 Matching the ground condition improved both coefficients:
 
 - **Cl** moved from −6.3% to **+3.0%** of the measured value — less than half the deviation, and now
-  slightly *above* rather than below experiment. It also lands on **+0.355**, the value SimFlow's
-  independent stationary-ground reference case reports for this geometry.
+  slightly *above* rather than below experiment.
 - **Cd** rose to 0.27908, placing it inside the stilt-corrected experimental band (0.2735–0.2822)
   rather than below it.
 - **Cl changed by 9.9%, Cd by only 3.4%.** Lift is roughly three times more sensitive to the ground
   condition than drag — exactly what Strachan's mechanism predicts, since the underbody pressure it
   perturbs acts primarily on the vertical force.
+
+> **Asymmetry worth stating.** Cd is compared against a *stilt-corrected* reference; Cl is compared
+> against the *raw* measured value. The reason is that the stilts are slender vertical cylinders —
+> their direct contribution to vertical force is small, unlike their streamwise contribution. But
+> they do disturb the underbody flow, so an indirect effect on lift can't be excluded. Gutierrez et
+> al. (2020) decompose drag by surface but give no usable lift equivalent, so no correction is
+> attempted. The +3.0% carries that residual uncertainty, making the Cl comparison marginally less
+> like-for-like than the Cd one.
 
 The practical conclusion: a meaningful part of what would otherwise have been written off as
 "k-ω SST limitations" was a **boundary-condition mismatch**, not turbulence modelling. With the
@@ -303,6 +314,14 @@ experiment to +3.0% on Cl and to within the reference band on Cd.
 > (GCI = 0.77%) was carried out on the moving-ground configuration. The GCI is a property of the
 > spatial discretisation and no mesh parameter changed, so it is expected to carry over, but this
 > has not been demonstrated.
+>
+> **Convergence caveat.** The restart met the residual criterion (10⁻⁶ vs. the 10⁻⁵ target) but ran
+> shorter than the 200-iteration window over which this study's force-monitor criterion
+> (ΔCd < 0.001) is defined. The coefficients were steady over the iterations available, but the
+> criterion *as written* was not demonstrated across a full window. This matters because Meile et
+> al. (2016) report a non-symmetric bi-stable wake for this geometry — though the half-model's
+> imposed symmetry plane excludes any asymmetric mode by construction, which is a limitation of the
+> idealisation in its own right.
 
 ### Experimental Wake Reference
 
