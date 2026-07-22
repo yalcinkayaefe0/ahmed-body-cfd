@@ -12,10 +12,10 @@
 `Cd = 0.27908` — inside the stilt-corrected experimental band — and `Cl = +0.35525`, **+3.0%** from
 the measured value.
 
-> ⚠️ **One open issue remains — see [Known Issues](#known-issues).** The wake comparison has been
-> withdrawn pending re-export of the CFD profiles at the correct experimental stations. The Cl sign
-> inversion and the ground-condition mismatch have both been resolved, and are documented there
-> rather than deleted.
+> **Scope.** This study validates the **force coefficients** (Cd, Cl) against measurement. Wake
+> profile validation is out of scope — an earlier attempt was withdrawn as unsound and the reasoning
+> is kept on the record in [Known Issues](#known-issues), along with two setup errors (Cl sign
+> inversion, ground-condition mismatch) that were found and resolved rather than deleted.
 
 ---
 
@@ -86,19 +86,34 @@ ERCOFTAC Case 082 exactly. All Re figures in this repository use this value.
 
 Reported by Fluent (`/mesh/quality`) on the volume mesh:
 
-| Metric | Medium (837k) | Fine (4.4M) | Acceptable |
-|---|---|---|---|
-| Min orthogonal quality | 0.1637 | 0.1537 | > 0.01 required, > 0.1 good |
-| Max aspect ratio | 122.7 | 122.2 | High values expected in prism layers |
+| Metric | Coarse (370k) | Medium (837k) | Fine (4.4M) | Acceptable |
+|---|---|---|---|---|
+| Min orthogonal quality | 0.1638 | 0.1637 | 0.1537 | > 0.01 required, > 0.1 good |
+| Max aspect ratio | **122.21** | **122.72** | **122.21** | High values expected in prism layers |
 
-Both meshes locate their worst cell at essentially the same place — medium at
-`(0.522, 0.059, 0.186)`, fine at `(0.518, 0.050, 0.190)`, both in zone 308 — and in each case the
-worst orthogonal-quality cell *is* the worst-skewness cell, with the worst aspect-ratio cell a
-fraction of a millimetre away. The poor cells are therefore a single localised cluster at the
-prism-layer/hexcore transition rather than a distributed quality problem, and refining the mesh did
-not spread them. Given GCI_fine = 0.77%, they do not measurably affect the solution.
+**The aspect ratio is essentially identical across all three levels — despite a 12× increase in cell
+count.** This is not a coincidence but a direct measurement of how the mesh family was built: the
+boundary-layer settings (8 layers, first AR 40, growth rate 1.2) were held fixed at every level, so
+refinement acted **only on the hexcore freestream cells while the prism layers stayed put**.
 
-> Aspect ratio ~122 against a target first-layer AR of 40 is normal: the target governs the first
+That matters for the GCI. The apparent order p = 3.53 exceeds the scheme's formal 2nd-order
+accuracy, and the report attributes this to a mesh family that is not self-similar — prism and
+freestream cells refining at different rates, leaving y⁺ un-held across levels. These numbers are
+the quantitative evidence for that argument, which until now rested on reasoning alone. A fixed
+first-layer *thickness* instead of a fixed aspect ratio would refine both regions together.
+
+**Where the worst cells sit.** All three meshes place them at the same location — coarse
+`(0.506, 0.0499, 0.178)`, medium `(0.522, 0.0586, 0.186)`, fine `(0.518, 0.0500, 0.190)`, all in
+zone 308. Read against the geometry: `y ≈ 0.050 m` is exactly the 50 mm ground clearance,
+`x ≈ 0.51 m` is mid-body (L = 1.044 m), and `z ≈ 0.18 m` is near the side edge (half-width
+0.194 m) — i.e. the **lower side edge of the underbody**, where the prism stack is squeezed into a
+sharp dihedral corner. In each mesh the worst orthogonal-quality cell is also the worst-skewness
+cell, with the worst-aspect-ratio cell a fraction of a millimetre away. Refinement relocates
+nothing, because the constraint is geometric rather than resolution-driven.
+
+Given GCI_fine = 0.77%, these cells do not measurably affect the solution.
+
+> Aspect ratio ~122 against a target first-layer AR of 40 is expected: the target governs the first
 > layer, while the reported maximum is taken over the whole boundary-layer stack.
 
 ---
@@ -219,7 +234,7 @@ the only defect. All three meshes now agree on both sign and magnitude.
 > measurement. Matching the ground condition (issue 3) subsequently moved it to **+0.35525**,
 > i.e. **+3.0%** from experiment.
 
-**2. The wake comparison was withdrawn (not corrected).**
+**2. The wake comparison was withdrawn (not corrected) — now out of scope.**
 An earlier revision plotted CFD wake profiles against a hand-entered "Lienhart & Becker" table at
 stations x/H = 0.48, 0.61, 0.73, 0.86. Checking against the real source — **ERCOFTAC Classic
 Collection, [Case 082](http://cfd.mace.manchester.ac.uk/ercoftac/doku.php?id=cases:case082)** —
@@ -232,9 +247,18 @@ showed two problems:
 - The Fluent export (`results/fine/velocity_profiles.xy`) labels its blocks `wake_x1`–`wake_x4` and
   **records no streamwise coordinate**, so the computed profiles cannot be located either.
 
-Fixing the reference alone wouldn't have made the comparison valid, so it was removed. The genuine
-ERCOFTAC data is now in `data/ercoftac/` and `scripts/ercoftac_wake_reference.py` reads it directly.
-**Next step:** re-export the CFD symmetry-plane profiles at the four experimental stations.
+Fixing the reference alone wouldn't have made the comparison valid, so it was removed.
+
+**Wake validation is out of scope for this study**, which validates the *force coefficients* against
+measurement. These are separate claims: Cd and Cl test the integrated surface loads; wake profiles
+test the resolved flow structure. Only the former is claimed here.
+
+The experimental data is included unmodified in `data/ercoftac/`, with
+`scripts/ercoftac_wake_reference.py` to read and plot it. What follow-on work would need to add is a
+re-export of the CFD symmetry-plane profiles at the four measured stations — with care over the
+coordinate mapping, since the ERCOFTAC origin sits at the **rear face** of the body and does not
+coincide with the Fluent case origin. Mismapping those axes is what invalidated the withdrawn
+comparison.
 
 **3. Ground boundary condition mismatch — ✅ RESOLVED.**
 The original CFD used a **moving wall at 40 m/s** to emulate a rolling road. Both experimental
@@ -283,8 +307,9 @@ experiment to +3.0% on Cl and to within the reference band on Cd.
 ### Experimental Wake Reference
 
 The genuine Lienhart & Becker wake measurements (ERCOFTAC Case 082) are included in
-`data/ercoftac/`, unmodified. Measurement planes: x = 0, 80, 200, 500 mm behind the body.
-A CFD comparison against them is the next step — see [Known Issues](#known-issues).
+`data/ercoftac/`, unmodified. Measurement planes: x = 0, 80, 200, 500 mm behind the body. They are
+provided as a reference dataset for follow-on work; no CFD comparison against them is claimed here
+(see [issue 2](#known-issues)).
 
 ---
 

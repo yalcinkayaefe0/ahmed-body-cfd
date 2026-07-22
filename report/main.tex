@@ -49,13 +49,19 @@ conflate them:
   is therefore not a valid citation for $C_d$ or $C_l$.
 \end{itemize}
 
-\subsection{Objectives}
+\subsection{Objectives and Scope}
 \begin{enumerate}
   \item Perform a three-level mesh independence study using the GCI methodology~\cite{celik2008}.
-  \item Validate the fine-mesh $C_d$ against the experimental reference.
-  \item Establish the experimental wake reference (ERCOFTAC Case 082) as the basis for a subsequent
-  profile-by-profile comparison.
+  \item Validate the fine-mesh $C_d$ and $C_l$ against the experimental references, ensuring the
+  comparison is like-for-like in both geometry (support stilts) and boundary conditions (ground
+  motion).
 \end{enumerate}
+
+\noindent
+The scope is deliberately limited to the \textbf{integrated force coefficients}. Validation of the
+resolved wake structure against the LDA profiles is a separate claim and is not made here; the
+experimental dataset is included in the repository for subsequent work, and the reasons are set out
+in Sec.~\ref{sec:wake_disc}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Geometry and Computational Domain}
@@ -229,24 +235,42 @@ Volume mesh quality as reported by Fluent's \texttt{/mesh/quality} utility:
 \caption{Mesh quality metrics. Orthogonal quality is bounded above by 1 (higher is better);
 Fluent requires $>0.01$ and regards $>0.1$ as good.}
 \label{tab:mesh_quality}
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Metric & Medium (837k) & Fine (4.4M) & Guideline \\
+Metric & Coarse (370k) & Medium (837k) & Fine (4.4M) & Guideline \\
 \midrule
-Min.\ orthogonal quality & 0.1637 & 0.1537 & $>0.01$ req., $>0.1$ good \\
-Max.\ aspect ratio       & 122.7  & 122.2  & High values expected in prism layers \\
+Min.\ orthogonal quality & 0.1638 & 0.1637 & 0.1537 & $>0.01$ req., $>0.1$ good \\
+Max.\ aspect ratio       & \textbf{122.21} & \textbf{122.72} & \textbf{122.21} & High in prism layers \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \noindent
-Both meshes place their worst cell in essentially the same location — medium at
-$(0.522,\,0.059,\,0.186)$, fine at $(0.518,\,0.050,\,0.190)$, both within zone 308 — and in each
-case the worst orthogonal-quality cell is simultaneously the worst-skewness cell, with the
-worst-aspect-ratio cell less than a millimetre away. The poor cells thus form a single localised
-cluster at the prism-layer/hexcore transition rather than a distributed quality deficiency, and
-refinement did not propagate them. Given $\text{GCI}_\text{fine} = 0.77\%$, their effect on the
-solution is not measurable.
+\textbf{The maximum aspect ratio is effectively identical at all three levels, despite a twelvefold
+increase in cell count.} This is a direct measurement of how the mesh family was constructed: the
+boundary-layer specification (8 layers, first aspect ratio 40, growth rate 1.2) was held fixed at
+every level, so refinement acted on the hexcore freestream cells alone while the prism stack
+remained unchanged.
+
+This bears directly on the mesh independence study. Section~\ref{sec:mesh_disc} attributes the
+apparent order $p = 3.53$ — in excess of the scheme's formal second-order accuracy — to a mesh
+family that is not self-similar, with prism and freestream cells refining at different rates and
+$y^+$ consequently not held constant across levels. Table~\ref{tab:mesh_quality} supplies the
+quantitative evidence for that argument, which had until now rested on reasoning alone. Specifying
+a fixed first-layer \emph{thickness} rather than a fixed aspect ratio would refine both regions
+together and yield a cleaner family.
+
+\textbf{Location of the worst cells.} All three meshes place them at the same position — coarse at
+$(0.506,\,0.0499,\,0.178)$, medium at $(0.522,\,0.0586,\,0.186)$, fine at
+$(0.518,\,0.0500,\,0.190)$, all within zone 308. Interpreted against the geometry,
+$y \approx \SI{0.050}{m}$ is precisely the ground clearance, $x \approx \SI{0.51}{m}$ is mid-body
+($L = \SI{1.044}{m}$) and $z \approx \SI{0.18}{m}$ lies near the side edge (half-width
+\SI{0.194}{m}). The worst cells therefore sit at the \emph{lower side edge of the underbody}, where
+the prism stack is compressed into a sharp dihedral corner. In each mesh the worst
+orthogonal-quality cell is simultaneously the worst-skewness cell, with the worst-aspect-ratio cell
+less than a millimetre away. Refinement does not relocate them, the constraint being geometric
+rather than resolution-driven. Given $\text{GCI}_\text{fine} = 0.77\%$, their effect on the solution
+is not measurable.
 
 A maximum aspect ratio of $\approx122$ against a target first-layer aspect ratio of 40 is expected:
 the target governs the first layer only, whereas the reported maximum is taken over the entire
@@ -598,7 +622,7 @@ brackets the numerical uncertainty; in both cases it remains well below the $1.3
 error, so the conclusions are insensitive to the choice. A fixed first-layer thickness and a
 uniform refinement ratio would yield a cleaner mesh family and an apparent order closer to 2.
 
-\subsection{Wake Profiles — Withdrawn}
+\subsection{Wake Profiles — Withdrawn and Out of Scope}
 \label{sec:wake_disc}
 
 An earlier revision of this report presented a CFD-vs-experiment wake comparison with an MAE metric.
@@ -619,10 +643,20 @@ sound:
 \end{itemize}
 
 Correcting the reference alone would not have made the comparison valid, since the computed side
-remains unlocated. The remedy is to re-export the CFD symmetry-plane profiles at the four
-experimental stations and plot them against the ERCOFTAC data directly, which
-\texttt{scripts/ercoftac\_wake\_reference.py} is set up to do. This is left as the immediate next
-step; no wake validation claim is made in this revision.
+remains unlocated.
+
+\textbf{Wake validation is therefore outside the scope of this study}, which validates the
+\emph{force coefficients} against measurement. The two are distinct claims: $C_d$ and $C_l$ test the
+integrated surface loads, whereas wake profiles test the resolved flow structure. Only the former is
+claimed here.
+
+The experimental data is nonetheless included in the repository in unmodified form
+(\texttt{data/ercoftac/}), together with \texttt{scripts/ercoftac\_wake\_reference.py}, which reads
+and plots it. What a subsequent study would need to add is a re-export of the CFD symmetry-plane
+profiles at the four measured stations, with careful attention to the coordinate mapping: the
+ERCOFTAC origin lies at the \emph{rear face} of the body, which does not coincide with the origin of
+the Fluent case. Mismapping those axes is what invalidated the withdrawn comparison in the first
+place.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusions}
@@ -654,9 +688,10 @@ step; no wake validation claim is made in this revision.
   mismatch (Sec.~\ref{sec:ground_disc}).
   \item The wake comparison presented in an earlier revision has been withdrawn: its experimental
   reference did not correspond to the actual measurements, and the computed profiles carry no
-  recorded station coordinate (Sec.~\ref{sec:wake_disc}). The genuine ERCOFTAC Case 082 data is now
-  included in the repository, and the comparison is the immediate next step rather than a claim made
-  here.
+  recorded station coordinate (Sec.~\ref{sec:wake_disc}). Wake validation is accordingly outside the
+  scope of this study, which validates the integrated force coefficients rather than the resolved
+  wake structure. The genuine ERCOFTAC Case 082 data is included in the repository for any
+  subsequent work.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
