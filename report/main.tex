@@ -232,15 +232,15 @@ Volume mesh quality as reported by Fluent's \texttt{/mesh/quality} utility:
 
 \begin{table}[H]
 \centering
-\caption{Mesh quality metrics. Orthogonal quality is bounded above by 1 (higher is better);
-Fluent requires $>0.01$ and regards $>0.1$ as good.}
+\caption{Mesh quality metrics. Orthogonal quality is bounded above by 1 (higher is better); Fluent
+requires $>0.01$ and regards $>0.1$ as good. High aspect ratios are expected within prism layers.}
 \label{tab:mesh_quality}
-\begin{tabular}{lcccc}
+\begin{tabular}{lccc}
 \toprule
-Metric & Coarse (370k) & Medium (837k) & Fine (4.4M) & Guideline \\
+Metric & Coarse (370k) & Medium (837k) & Fine (4.4M) \\
 \midrule
-Min.\ orthogonal quality & 0.1638 & 0.1637 & 0.1537 & $>0.01$ req., $>0.1$ good \\
-Max.\ aspect ratio       & \textbf{122.21} & \textbf{122.72} & \textbf{122.21} & High in prism layers \\
+Min.\ orthogonal quality & 0.1638 & 0.1637 & 0.1537 \\
+Max.\ aspect ratio       & \textbf{122.21} & \textbf{122.72} & \textbf{122.21} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -260,9 +260,10 @@ quantitative evidence for that argument, which had until now rested on reasoning
 a fixed first-layer \emph{thickness} rather than a fixed aspect ratio would refine both regions
 together and yield a cleaner family.
 
-\textbf{Location of the worst cells.} All three meshes place them at the same position — coarse at
-$(0.506,\,0.0499,\,0.178)$, medium at $(0.522,\,0.0586,\,0.186)$, fine at
-$(0.518,\,0.0500,\,0.190)$, all within zone 308. Interpreted against the geometry,
+\begin{sloppypar}
+\textbf{Location of the worst cells.} All three meshes place them at the same position, all within
+zone 308: $(0.506,\,0.0499,\,0.178)$ for coarse, $(0.522,\,0.0586,\,0.186)$ for medium and
+$(0.518,\,0.0500,\,0.190)$ for fine. Interpreted against the geometry,
 $y \approx \SI{0.050}{m}$ is precisely the ground clearance, $x \approx \SI{0.51}{m}$ is mid-body
 ($L = \SI{1.044}{m}$) and $z \approx \SI{0.18}{m}$ lies near the side edge (half-width
 \SI{0.194}{m}). The worst cells therefore sit at the \emph{lower side edge of the underbody}, where
@@ -271,6 +272,7 @@ orthogonal-quality cell is simultaneously the worst-skewness cell, with the wors
 less than a millimetre away. Refinement does not relocate them, the constraint being geometric
 rather than resolution-driven. Given $\text{GCI}_\text{fine} = 0.77\%$, their effect on the solution
 is not measurable.
+\end{sloppypar}
 
 A maximum aspect ratio of $\approx122$ against a target first-layer aspect ratio of 40 is expected:
 the target governs the first layer only, whereas the reported maximum is taken over the entire
@@ -629,6 +631,7 @@ An earlier revision of this report presented a CFD-vs-experiment wake comparison
 That comparison has been \textbf{withdrawn rather than corrected}, because neither side of it was
 sound:
 
+\begin{sloppypar}
 \begin{itemize}
   \item \textbf{The experimental reference was not the experiment.} The profiles had been entered
   by hand at stations $x/H = 0.48$, $0.61$, $0.73$, $0.86$. The ERCOFTAC Case 082
@@ -636,11 +639,12 @@ sound:
   $x/H = 0$, $0.28$, $0.69$, $1.74$. The stations that were plotted do not exist in the experiment,
   and the values did not match it: the real data shows reverse flow reaching $U/U_\infty = -0.34$ at
   $x = \SI{80}{mm}$, an order of magnitude stronger than what had been tabulated.
-  \item \textbf{The CFD profiles have no recorded station.} The Fluent export
-  (\texttt{results/fine/velocity\_profiles.xy}) labels its four blocks
-  \texttt{wake\_x1}--\texttt{wake\_x4} and records no streamwise coordinate, so the location of the
-  computed profiles cannot be recovered from the file.
+  \item \textbf{The CFD profiles have no recorded station.} The Fluent export file
+  \texttt{velocity\_profiles.xy} labels its four blocks \texttt{wake\_x1} through
+  \texttt{wake\_x4} and records no streamwise coordinate, so the location of the computed profiles
+  cannot be recovered from the file.
 \end{itemize}
+\end{sloppypar}
 
 Correcting the reference alone would not have made the comparison valid, since the computed side
 remains unlocated.
