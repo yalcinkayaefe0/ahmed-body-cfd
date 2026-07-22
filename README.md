@@ -45,6 +45,16 @@ Upstream: 5H | Downstream: 15H | Lateral: 5H | Top: 5H
 **Tool:** ANSYS Fluent Meshing 2024 — Watertight Geometry workflow, poly-hexcore fill.  
 **Boundary layer:** 8 layers, aspect ratio = 40, growth rate = 1.2 → y⁺ ≈ 15–30 (wall functions).
 
+> **Note on y⁺.** The achieved range sits in the buffer layer (5 < y⁺ < 30), where neither near-wall
+> strategy is strictly valid — wall functions assume y⁺ > 30, low-Re resolution needs y⁺ < 1. This
+> follows from sizing the first layer by aspect ratio rather than absolute thickness, and is the
+> likely cause of the inconsistent y⁺ across mesh levels. `scripts/y_plus_calculator.py` reports the
+> first-cell height for both strategies.
+
+**Reynolds number:** Re_L = 2.78×10⁶ on body length, Re_H = 7.68×10⁵ on body height, using the
+reference experiment's kinematic viscosity ν = 15×10⁻⁶ m²/s — which reproduces the Re_H quoted in
+ERCOFTAC Case 082 exactly. All Re figures in this repository use this value.
+
 | Parameter | Value |
 |-----------|-------|
 | Solver | ANSYS Fluent 2024 |

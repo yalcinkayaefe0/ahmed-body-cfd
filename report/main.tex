@@ -35,8 +35,11 @@
 The Ahmed body~\cite{ahmed1984} is a simplified bluff-body geometry that has become the standard benchmark for automotive aerodynamics CFD validation. Its geometry is fully parametric and its flow field—particularly the slant-angle-dependent wake structure—is extensively documented in the open literature.
 
 This study uses the \textbf{25° slant angle} configuration at $U_\infty = \SI{40}{m/s}$
-($Re \approx 2.77\times10^6$). Two distinct experimental sources are used, and it is important not
-to conflate them:
+($Re_L = 2.78\times10^6$ on the body length, equivalently $Re_H = 7.68\times10^5$ on the body
+height). Reynolds numbers throughout this report use the kinematic viscosity adopted by the
+reference experiment, $\nu = \SI{15e-6}{m^2/s}$~\cite{ercoftac082}, which reproduces the $Re_H$
+quoted there exactly. Two distinct experimental sources are used, and it is important not to
+conflate them:
 \begin{itemize}
   \item \textbf{Force coefficients} are taken from Meile et al.~\cite{meile2016}, who measured
   $C_d = 0.29883 \pm 0.5\%$ on the original geometry at \SI{40}{m/s} using a six-component force
@@ -167,6 +170,13 @@ with a \textbf{poly-hexcore} volume fill.
 Wall functions ($y^+ \approx 15$–$30$) with aspect-ratio sizing:
 8~layers, first aspect ratio~40, growth rate~1.2.
 
+The achieved $y^+$ range sits in the buffer layer ($5 < y^+ < 30$) rather than clear of it. Neither
+near-wall strategy is strictly valid there: wall functions assume the log-law
+($y^+ > 30$), while low-Reynolds resolution requires $y^+ < 1$. This is a consequence
+of sizing the first layer by aspect ratio rather than by absolute thickness, and its effects are
+taken up in Sec.~\ref{sec:cd_disc} and Sec.~\ref{sec:mesh_disc}.
+\texttt{scripts/y\_plus\_calculator.py} reports the first-cell height for both strategies.
+
 \begin{figure}[H]
   \centering
   \begin{subfigure}{0.32\textwidth}
@@ -179,7 +189,7 @@ Wall functions ($y^+ \approx 15$–$30$) with aspect-ratio sizing:
   \end{subfigure}\hfill
   \begin{subfigure}{0.32\textwidth}
     \includegraphics[width=\linewidth]{mesh/screenshots/y_plus_calculation.png}
-    \caption{$y^+$ estimation — $Re = 2.77\times10^6$}
+    \caption{$y^+$ estimation — $Re_L = 2.78\times10^6$}
   \end{subfigure}
   \caption{Boundary layer settings and $y^+$ calculation.}
   \label{fig:bl}
@@ -434,6 +444,7 @@ see Section~\ref{sec:wake_disc} for why.
 \section{Discussion}
 
 \subsection{Drag Coefficient Underprediction}
+\label{sec:cd_disc}
 Against the stilt-corrected reference the fine mesh underpredicts $C_d$ by $1.3$–$4.4\%$. The
 comparison against the raw measured value ($-9.4\%$) overstates the error, because it charges the
 stilt-free CFD geometry with drag that the experimental model's support stilts contributed.
@@ -574,6 +585,7 @@ the spatial discretisation and no mesh parameter was altered, it is expected to 
 has not been demonstrated and is left as a caveat rather than a claim.
 
 \subsection{Mesh Independence}
+\label{sec:mesh_disc}
 The apparent order $p = 3.53$ exceeds the formal second-order accuracy of the discretisation
 scheme. Such super-convergence typically indicates that the mesh family is not perfectly
 self-similar: the aspect-ratio-based boundary layer sizing means the prism layers do not refine at
