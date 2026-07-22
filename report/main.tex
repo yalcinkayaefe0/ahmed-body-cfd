@@ -114,6 +114,11 @@ Body surface & No-slip wall & $U = 0$ \\
 \end{tabular}
 \end{table}
 
+\noindent
+\textbf{Note.} The moving-wall ground emulates a rolling road, whereas both experiments used for
+validation ran over a stationary floor. This mismatch affects the lift comparison and is discussed
+in Sec.~\ref{sec:ground_disc}.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Mesh Strategy}
 
@@ -447,6 +452,45 @@ behaviour of $k$-$\omega$ SST with wall functions on this geometry.
 geometry's vertical axis and re-extract $C_l$ for the medium and fine meshes. Until this is done,
 the values above are reported but not claimed.
 
+\subsection{Ground Boundary Condition — Open Issue}
+\label{sec:ground_disc}
+
+\textbf{The ground condition simulated here does not match either experiment it is compared
+against.} This study applies a moving wall at $U = \SI{40}{m/s}$ (Table~1), emulating a rolling
+road. Both experimental sources ran over a \emph{stationary} floor:
+
+\begin{table}[H]
+\centering
+\caption{Ground condition in the reference experiments.}
+\begin{tabular}{lll}
+\toprule
+Source & Facility & Ground \\
+\midrule
+Lienhart \& Becker~\cite{lienhart2003,ercoftac082} & LSTM, 3/4-open section & Fixed plate; model on
+\SI{30}{mm} stilts \\
+Meile et al.~\cite{meile2011,meile2016} & Graz ISW & Fixed floor, six-component balance \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+The distinction is not cosmetic. Strachan et al.~\cite{strachan2007} measured this geometry over
+both a fixed and a moving ground plane and found that the moving plane thins the underbody boundary
+layer, increases the underbody flow speed, and displaces the near-wake vortex structure. Those are
+precisely the mechanisms that set the underbody static pressure — and therefore $C_l$, the
+coefficient already flagged in Sec.~\ref{sec:cl_disc}.
+
+The consequence is that the lift comparison is doubly compromised: beyond the sign error, the
+sign-corrected $+0.323$ is a \emph{moving-ground} CFD result being measured against a
+\emph{fixed-ground} experiment. The residual $-6.3\%$ therefore cannot be attributed to turbulence
+modelling until the ground condition is matched; part of it is a boundary-condition mismatch. $C_d$
+is less sensitive to the ground state than $C_l$, but is not immune either.
+
+\textbf{Action required:} rerun the fine mesh with the ground boundary set to a stationary wall,
+restarted from the converged moving-ground solution with no other setting altered, and report both
+values. This isolates the ground condition as the single changed variable and makes the resulting
+comparison like-for-like.
+
 \subsection{Mesh Independence}
 The apparent order $p = 3.53$ exceeds the formal second-order accuracy of the discretisation
 scheme. Such super-convergence typically indicates that the mesh family is not perfectly
@@ -506,6 +550,11 @@ step; no wake validation claim is made in this revision.
   the finer meshes return the same magnitude negated. Corrected, the fine-mesh value is $+0.323$
   ($-6.3\%$), consistent with the $C_d$ deviation. The Fluent lift direction vector must be
   re-verified (Sec.~\ref{sec:cl_disc}).
+  \item The ground boundary condition (moving wall at freestream speed) matches neither reference
+  experiment, both of which used a stationary floor. Since the moving ground alters exactly the
+  underbody flow that sets the lift, the $C_l$ comparison is not like-for-like and the residual
+  deviation cannot yet be assigned to turbulence modelling. A stationary-ground rerun is required
+  (Sec.~\ref{sec:ground_disc}).
   \item The wake comparison presented in an earlier revision has been withdrawn: its experimental
   reference did not correspond to the actual measurements, and the computed profiles carry no
   recorded station coordinate (Sec.~\ref{sec:wake_disc}). The genuine ERCOFTAC Case 082 data is now
@@ -553,6 +602,11 @@ analysis using CFD}.
 Celik, I.B. et al. (2008).
 \textit{Procedure for estimation and reporting of uncertainty due to discretization in CFD applications}.
 Journal of Fluids Engineering, 130(7), 078001.
+
+\bibitem{strachan2007}
+Strachan, R.K., Knowles, K., \& Lawson, N.J. (2007).
+\textit{The vortex structure behind an Ahmed reference model in the presence of a moving ground plane}.
+Experiments in Fluids, 42(5), 659–669.
 
 \bibitem{menter1994}
 Menter, F.R. (1994).

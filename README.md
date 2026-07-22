@@ -9,8 +9,9 @@
   report force coefficients and must not be cited for Cd or Cl.*
 
 > ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The Cl sign is
-> inverted on the medium/fine meshes, and the wake comparison has been withdrawn pending re-export
-> of the CFD profiles at the correct experimental stations.
+> inverted on the medium/fine meshes, the wake comparison has been withdrawn pending re-export
+> of the CFD profiles at the correct experimental stations, and the CFD runs on a moving ground
+> while both experiments used a stationary floor — so the Cl comparison is not like-for-like.
 
 ---
 
@@ -48,7 +49,7 @@ Upstream: 5H | Downstream: 15H | Lateral: 5H | Top: 5H
 | Wall treatment | Wall functions (y⁺ ≈ 15–30) |
 | BL layers | 8, AR = 40, growth rate 1.2 |
 | Inlet velocity | 40 m/s |
-| Ground | Moving wall, 40 m/s |
+| Ground | Moving wall, 40 m/s ⚠️ (experiments used a stationary floor — [issue 3](#known-issues)) |
 | Symmetry | Half model (z = 0 plane) |
 
 <p align="center">
@@ -189,6 +190,30 @@ Fixing the reference alone wouldn't have made the comparison valid, so it was re
 ERCOFTAC data is now in `data/ercoftac/` and `scripts/ercoftac_wake_reference.py` reads it directly.
 **Next step:** re-export the CFD symmetry-plane profiles at the four experimental stations.
 
+**3. The ground boundary condition does not match either experiment.**
+This CFD uses a **moving wall at 40 m/s** to emulate a rolling road. Both experimental sources used
+here ran on a **stationary floor**:
+
+| Source | Facility | Ground |
+|---|---|---|
+| Lienhart & Becker (ERCOFTAC 082) | LSTM, 3/4-open test section | Fixed ground plate; model on 30 mm stilts through the plate, 50 mm clearance |
+| Meile et al. (2011, 2016) | Graz ISW | Fixed floor, six-component balance |
+
+This is not a cosmetic difference. Strachan et al. (2007) measured the same geometry over both a
+fixed and a moving ground and found the moving plane thins the underbody boundary layer, raises
+underbody flow speed, and shifts the near-wake vortex structure — which acts directly on the
+underbody pressure that sets **Cl**, the very coefficient flagged in issue 1.
+
+So the Cl comparison in this README is **not like-for-like**, in addition to the sign problem: the
+sign-corrected +0.323 against Meile's +0.345 mixes a moving-ground CFD with a fixed-ground
+measurement. The residual −6.3% cannot be attributed to turbulence modelling until the ground
+condition is matched. (SimFlow's stationary-ground reference case for this geometry reports
+Cl = +0.355, i.e. the gap narrows in the direction this argument predicts.) Cd is less sensitive but
+not immune.
+
+**Action:** rerun the fine mesh with the ground set to a stationary wall, restarting from the
+converged moving-ground solution and changing nothing else, then report both.
+
 ### Experimental Wake Reference
 
 The genuine Lienhart & Becker wake measurements (ERCOFTAC Case 082) are included in
@@ -251,5 +276,6 @@ ahmed-body-cfd/
 - **Meile, W., Brenn, G., Reppenhagen, A. & Fuchs, A. (2011).** *Experiments and numerical simulations on the aerodynamics of the Ahmed body.* CFD Letters, 3(1), 32–39. — Cl = +0.345.
 - **Meile, W., Ladinek, T., Brenn, G., Reppenhagen, A. & Fuchs, A. (2016).** *Non-symmetric bi-stable flow around the Ahmed body.* Int. J. Heat and Fluid Flow, 57, 34–47. — Cd = 0.29883 ± 0.5%.
 - **Chavez Gutierrez, J.E., Vera Duarte, L.E., Oliveira Jr., A.A.M. & Cancino, L.R. (2020).** *The Ahmed body's external aerodynamics at 25° slant angle rear surface.* ENCIT 2020, ENC-2020-0060. — Surface-by-surface drag/lift decomposition (stilt contribution).
+- **Strachan, R.K., Knowles, K. & Lawson, N.J. (2007).** *The vortex structure behind an Ahmed reference model in the presence of a moving ground plane.* Experiments in Fluids, 42(5), 659–669. — Moving vs. fixed ground effect on underbody flow and wake vortices.
 - **Celik, I.B. et al. (2008).** *Procedure for estimation and reporting of uncertainty due to discretization in CFD applications.* J. Fluids Eng., 130(7), 078001. — GCI methodology.
 - **Ahmed, S.R., Ramm, G. & Faltin, G. (1984).** *Some salient features of the time-averaged ground vehicle wake.* SAE 840300.
