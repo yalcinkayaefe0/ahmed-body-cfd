@@ -208,6 +208,39 @@ Wall functions ($y^+ \approx 15$–$30$) with aspect-ratio sizing:
   \label{fig:octree_warning}
 \end{figure}
 
+\subsection{Mesh Quality Metrics}
+\label{sec:mesh_quality}
+
+Volume mesh quality as reported by Fluent's \texttt{/mesh/quality} utility:
+
+\begin{table}[H]
+\centering
+\caption{Mesh quality metrics. Orthogonal quality is bounded above by 1 (higher is better);
+Fluent requires $>0.01$ and regards $>0.1$ as good.}
+\label{tab:mesh_quality}
+\begin{tabular}{lccc}
+\toprule
+Metric & Medium (837k) & Fine (4.4M) & Guideline \\
+\midrule
+Min.\ orthogonal quality & 0.1637 & 0.1537 & $>0.01$ req., $>0.1$ good \\
+Max.\ aspect ratio       & 122.7  & 122.2  & High values expected in prism layers \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Both meshes place their worst cell in essentially the same location — medium at
+$(0.522,\,0.059,\,0.186)$, fine at $(0.518,\,0.050,\,0.190)$, both within zone 308 — and in each
+case the worst orthogonal-quality cell is simultaneously the worst-skewness cell, with the
+worst-aspect-ratio cell less than a millimetre away. The poor cells thus form a single localised
+cluster at the prism-layer/hexcore transition rather than a distributed quality deficiency, and
+refinement did not propagate them. Given $\text{GCI}_\text{fine} = 0.77\%$, their effect on the
+solution is not measurable.
+
+A maximum aspect ratio of $\approx122$ against a target first-layer aspect ratio of 40 is expected:
+the target governs the first layer only, whereas the reported maximum is taken over the entire
+boundary-layer stack.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Solver Settings}
 
@@ -358,11 +391,10 @@ Quantity & CFD (fine) & Experiment & Error \\
 \midrule
 $C_d$ (raw, vs.\ stilted model)      & 0.2699 & $0.298\pm0.005$~\cite{meile2016} & $-9.4\%$ \\
 $C_d$ (vs.\ stilt-corrected ref.)    & 0.2699 & $0.2735$–$0.2822$ & $-1.3\%$ to $-4.4\%$ \\
-$C_l$ (as reported)                   & $-0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & sign inverted \\
-$C_l$ (sign corrected)                & $+0.323$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & $-6.3\%$ \\
+$C_l$ (sign corrected)                & $+0.32319$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & $-6.3\%$ \\
 \bottomrule
-\multicolumn{4}{l}{\small $^{\dagger}$\textbf{Known issue.} The coarse run returns $C_l = +0.3357$ (correct sign); the medium and}\\
-\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}fine runs return the same magnitude negated. Direction-vector error — see Sec.~\ref{sec:cl_disc}.}
+\multicolumn{4}{l}{\small $^{\dagger}$The force-vector sign error has been corrected (Sec.~\ref{sec:cl_disc}). The comparison is}\\
+\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}nonetheless moving-ground CFD against a fixed-ground experiment — see Sec.~\ref{sec:ground_disc}.}
 \end{tabular}
 \end{table}
 
@@ -410,47 +442,50 @@ $k$-$\omega$ SST with wall functions on bluff bodies:
   convergence study is what exposes this.
 \end{itemize}
 
-\subsection{Lift Coefficient — Open Issue}
+\subsection{Lift Coefficient — Sign Error, Resolved}
 \label{sec:cl_disc}
 
-\textbf{The reported $C_l$ has an inverted sign and must not be used as-is.} The experimental value
-for the 25° slant is $C_l = +0.345$~\cite{meile2011} — \emph{positive}. Gutierrez et
-al.~\cite{gutierrez2020} obtain $+0.363$ ($k$-$\varepsilon$ Realizable) and $+0.376$ ($k$-$\omega$
-Standard), and explain the mechanism: at 25° the flow between the road and the underbody is slow,
-so the underbody static pressure remains higher than that on the upper surface, producing net
-positive lift.
+An earlier revision of this report carried an inverted $C_l$ on the medium and fine meshes. The
+error has since been traced and corrected; it is documented here because the diagnosis is
+instructive.
 
-The evidence that this is a post-processing error, not a physical one, is internal to this study:
+The experimental value for the 25° slant is $C_l = +0.345$~\cite{meile2011} — \emph{positive}.
+Gutierrez et al.~\cite{gutierrez2020} obtain $+0.363$ ($k$-$\varepsilon$ Realizable) and $+0.376$
+($k$-$\omega$ Standard), and explain the mechanism: at 25° the flow between the road and the
+underbody is slow, so the underbody static pressure remains higher than that on the upper surface,
+producing net positive lift. The medium and fine runs returned a negative value of the same
+magnitude.
+
+That pattern was itself the diagnosis. A physical modelling deficiency cannot negate a coefficient
+while preserving its magnitude — it would corrupt the magnitude instead. The fault therefore had to
+lie in post-processing, and it did: the lift report definition's force vector had been entered as
+$(0,-1,0)$ on the medium and fine cases against $(0,1,0)$ on the coarse case, inverting the vertical
+axis. Correcting the vector and re-extracting $C_l$ from the existing converged solutions — no
+re-iteration, so the flow fields are untouched — recovers the magnitudes to five significant figures:
 
 \begin{table}[H]
 \centering
-\caption{Lift coefficient across mesh levels. The coarse run — the first executed — returns the
-physically correct sign.}
+\caption{Lift coefficient across mesh levels, before and after correcting the force vector.}
 \begin{tabular}{lccc}
 \toprule
-Mesh & $C_l$ & Sign & Deviation from exp.\ ($|C_l|$) \\
+Mesh & $C_l$ as-reported & $C_l$ corrected & Deviation from exp. \\
 \midrule
-Coarse (370k) & $+0.3357$ & correct   & $-2.6\%$ \\
-Medium (837k) & $-0.3235$ & inverted  & $-6.2\%$ \\
-Fine (4.4M)   & $-0.3232$ & inverted  & $-6.3\%$ \\
+Coarse (370k) & $+0.3357$ & $+0.3357$\footnotemark[2] & $-2.7\%$ \\
+Medium (837k) & $-0.3235$ & $\mathbf{+0.32349}$ & $-6.2\%$ \\
+Fine (4.4M)   & $-0.3232$ & $\mathbf{+0.32319}$ & $-6.3\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\footnotetext[2]{The coarse case already carried the correct force vector; it is unchanged.}
+
 \noindent
-All three runs agree on the \emph{magnitude} to within a few percent of each other and of the
-experiment; only the sign flips between the coarse run and the two subsequent ones. A physical
-modelling deficiency cannot produce this pattern — it would corrupt the magnitude, not negate it
-while preserving it. The cause is therefore a change made to the lift force report definition
-(direction vector) between the coarse and medium runs.
+All three meshes now agree on both sign and magnitude. The residual $-6.3\%$ is the same order as
+the $C_d$ deviation.
 
-Taking the fine-mesh magnitude with the sign corrected gives $C_l = +0.323$, a deviation of
-$-6.3\%$ from experiment — the same order as the $C_d$ deviation, and consistent with the known
-behaviour of $k$-$\omega$ SST with wall functions on this geometry.
-
-\textbf{Action required:} verify the lift direction vector in the Fluent force report against the
-geometry's vertical axis and re-extract $C_l$ for the medium and fine meshes. Until this is done,
-the values above are reported but not claimed.
+\textbf{However, this does not on its own constitute a validated $C_l$.} The corrected value is a
+moving-ground result compared against a fixed-ground measurement, so the residual cannot yet be
+attributed to turbulence modelling — see Sec.~\ref{sec:ground_disc}.
 
 \subsection{Ground Boundary Condition — Open Issue}
 \label{sec:ground_disc}
@@ -545,11 +580,11 @@ step; no wake validation claim is made in this revision.
   error to $9.4\%$. Likewise, the coarse mesh appears to agree almost exactly with experiment
   ($+0.3\%$) purely through compensating errors. Both are reminders that a validation claim is only
   as good as the like-for-like nature of the comparison behind it.
-  \item The lift coefficient is affected by a sign error introduced between the coarse and medium
-  runs: the coarse mesh returns $C_l = +0.3357$ (physically correct, $-2.6\%$ from experiment) while
-  the finer meshes return the same magnitude negated. Corrected, the fine-mesh value is $+0.323$
-  ($-6.3\%$), consistent with the $C_d$ deviation. The Fluent lift direction vector must be
-  re-verified (Sec.~\ref{sec:cl_disc}).
+  \item A lift sign error introduced between the coarse and medium runs has been traced to the force
+  report definition's direction vector, entered as $(0,-1,0)$ instead of $(0,1,0)$, and corrected.
+  Re-extracting $C_l$ from the existing converged solutions gives $+0.32349$ (medium) and $+0.32319$
+  (fine), recovering the original magnitudes to five significant figures and bringing all three
+  meshes into agreement on sign and magnitude (Sec.~\ref{sec:cl_disc}).
   \item The ground boundary condition (moving wall at freestream speed) matches neither reference
   experiment, both of which used a stationary floor. Since the moving ground alters exactly the
   underbody flow that sets the lift, the $C_l$ comparison is not like-for-like and the residual

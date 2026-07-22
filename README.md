@@ -8,10 +8,10 @@
 - **Wake velocity profiles** — Lienhart & Becker (2003), SAE 2003-01-0656 (LDA). *This paper does not
   report force coefficients and must not be cited for Cd or Cl.*
 
-> ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The Cl sign is
-> inverted on the medium/fine meshes, the wake comparison has been withdrawn pending re-export
-> of the CFD profiles at the correct experimental stations, and the CFD runs on a moving ground
-> while both experiments used a stationary floor — so the Cl comparison is not like-for-like.
+> ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The wake
+> comparison has been withdrawn pending re-export of the CFD profiles at the correct experimental
+> stations, and the CFD runs on a moving ground while both experiments used a stationary floor — so
+> the Cl comparison is not like-for-like. *(The Cl sign inversion has been resolved.)*
 
 ---
 
@@ -68,6 +68,25 @@ Upstream: 5H | Downstream: 15H | Lateral: 5H | Top: 5H
   <img src="mesh/screenshots/y_plus_calculation.png" width="40%" alt="y+ calculation — Re and first cell height"/>
 </p>
 
+### Mesh Quality
+
+Reported by Fluent (`/mesh/quality`) on the volume mesh:
+
+| Metric | Medium (837k) | Fine (4.4M) | Acceptable |
+|---|---|---|---|
+| Min orthogonal quality | 0.1637 | 0.1537 | > 0.01 required, > 0.1 good |
+| Max aspect ratio | 122.7 | 122.2 | High values expected in prism layers |
+
+Both meshes locate their worst cell at essentially the same place — medium at
+`(0.522, 0.059, 0.186)`, fine at `(0.518, 0.050, 0.190)`, both in zone 308 — and in each case the
+worst orthogonal-quality cell *is* the worst-skewness cell, with the worst aspect-ratio cell a
+fraction of a millimetre away. The poor cells are therefore a single localised cluster at the
+prism-layer/hexcore transition rather than a distributed quality problem, and refining the mesh did
+not spread them. Given GCI_fine = 0.77%, they do not measurably affect the solution.
+
+> Aspect ratio ~122 against a target first-layer AR of 40 is normal: the target governs the first
+> layer, while the reported maximum is taken over the whole boundary-layer stack.
+
 ---
 
 ## Mesh Independence Study
@@ -112,22 +131,22 @@ and the missing stilt drag. Agreement on an unconverged mesh is not evidence of 
 
 ## Results
 
-### Coarse Mesh (370k cells — Cd = 0.299, Cl = **+0.336**)
+### Coarse Mesh (370k cells — Cd = 0.299, Cl = **+0.3357**)
 
-Note the **positive** Cl here — matching the experimental +0.345 to within 2.6%. The sign inverts on
-the finer meshes; see [Known Issues](#known-issues).
+This run had the correct lift force vector from the start; the medium and fine cases did not, which
+is how the sign error in [issue 1](#known-issues) was caught.
 
 <p align="center">
   <img src="results/coarse/cd_cl_initial.png" width="55%" alt="Coarse mesh Cd/Cl"/>
 </p>
 
-### Medium Mesh (837k cells — Cd = 0.280)
+### Medium Mesh (837k cells — Cd = 0.280, Cl = **+0.32349** sign-corrected)
 
 <p align="center">
   <img src="results/medium/cd_cl.png" width="55%" alt="Medium mesh Cd/Cl"/>
 </p>
 
-### Fine Mesh (4.4M cells — Cd = 0.270)
+### Fine Mesh (4.4M cells — Cd = 0.270, Cl = **+0.32319** sign-corrected)
 
 <p align="center">
   <img src="results/fine/screenshots/cd_convergence_early.png" width="48%" alt="Fine mesh Cd convergence"/>
@@ -141,37 +160,45 @@ the finer meshes; see [Known Issues](#known-issues).
 | | CFD (fine mesh) | Experiment | Error |
 |-|----------------|------------|-------|
 | Cd (vs. stilt-corrected ref.) | 0.2699 | 0.2735 – 0.2822 | **−1.3% to −4.4%** |
-| Cl | −0.323 ⚠️ | +0.345 (Meile 2011) | **sign error — see below** |
+| Cl (sign-corrected) | +0.32319 | +0.345 (Meile 2011) | **−6.3%** ⚠️ not like-for-like |
 
 > Cd underprediction is consistent with known k-ω SST + wall function limitations for separated
 > bluff-body aerodynamics. Crucially, the fine-mesh GCI is 0.77% — the solution *is* mesh
 > independent, so the residual deviation is model error, not a resolution problem.
+>
+> The Cl sign error has been fixed (issue 1), but the comparison remains **moving-ground CFD against
+> fixed-ground experiment** (issue 3), so the −6.3% is not a clean validation figure.
 
 ---
 
 ## Known Issues
 
-**1. Cl sign is inverted on the medium and fine meshes.**
+**1. Cl sign inversion — ✅ RESOLVED.**
 The experimental Cl for a 25° slant is **positive** (+0.345, Meile et al. 2011; Gutierrez et al.
 2020 obtain +0.363 and +0.376). Physically, the slow flow between road and underbody keeps the
-underbody pressure higher than the upper-surface pressure, producing net positive lift.
+underbody pressure higher than the upper-surface pressure, producing net positive lift. The medium
+and fine meshes originally reported a *negative* Cl of the same magnitude.
 
-The evidence that this is a post-processing error is internal to this study:
+**Cause:** the lift report definition's force vector had been set to `(0, −1, 0)` on the medium and
+fine cases, against `(0, 1, 0)` on the coarse case — the vertical axis entered with the wrong sign
+between the coarse and medium runs. A post-processing error, not a physical one, exactly as the
+magnitude agreement predicted.
 
-| Mesh | Cl | Sign | Deviation from exp. (\|Cl\|) |
+**Fix:** the force vector was corrected to `(0, 1, 0)` and Cl re-extracted from the existing
+converged solutions. No re-iteration was needed, so the flow fields are unchanged.
+
+| Mesh | Cl (as-reported) | Cl (corrected) | Deviation from exp. |
 |---|---|---|---|
-| Coarse (370k) | **+0.3357** | correct | −2.6% |
-| Medium (837k) | −0.3235 | inverted | −6.2% |
-| Fine (4.4M) | −0.3232 | inverted | −6.3% |
+| Coarse (370k) | +0.3357 | +0.3357 *(was already correct)* | −2.7% |
+| Medium (837k) | −0.3235 | **+0.32349** | −6.2% |
+| Fine (4.4M) | −0.3232 | **+0.32319** | −6.3% |
 
-All three runs agree on the **magnitude**; only the sign flips after the coarse run. A physical
-modelling deficiency would corrupt the magnitude, not negate it while preserving it. The cause is a
-change to the lift force report definition (direction vector) made between the coarse and medium
-runs.
+The corrected magnitudes match the originals to five significant figures — confirming the sign was
+the only defect. All three meshes now agree on both sign and magnitude.
 
-Sign-corrected, the fine-mesh value is **Cl = +0.323** (−6.3% from experiment) — the same order as
-the Cd deviation. **Action:** verify the lift direction vector in Fluent and re-extract Cl for the
-medium and fine meshes.
+> ⚠️ **This does not by itself validate Cl.** The corrected +0.323 is a *moving-ground* result being
+> compared against a *fixed-ground* measurement — see issue 3. The −6.3% residual is not yet
+> attributable to turbulence modelling.
 
 **2. The wake comparison was withdrawn (not corrected).**
 An earlier revision plotted CFD wake profiles against a hand-entered "Lienhart & Becker" table at
