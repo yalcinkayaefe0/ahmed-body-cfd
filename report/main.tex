@@ -14,7 +14,9 @@
 \usepackage{siunitx}
 \usepackage{float}
 
-\graphicspath{{./}}
+% Both roots are declared so the document builds whether the compiler's working
+% directory is the project root or the folder containing main.tex (Overleaf).
+\graphicspath{{./}{../}}
 
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
 
