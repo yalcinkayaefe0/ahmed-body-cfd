@@ -8,10 +8,14 @@
 - **Wake velocity profiles** — Lienhart & Becker (2003), SAE 2003-01-0656 (LDA). *This paper does not
   report force coefficients and must not be cited for Cd or Cl.*
 
-> ⚠️ **Open issues — see [Known Issues](#known-issues) before using these results.** The wake
-> comparison has been withdrawn pending re-export of the CFD profiles at the correct experimental
-> stations, and the CFD runs on a moving ground while both experiments used a stationary floor — so
-> the Cl comparison is not like-for-like. *(The Cl sign inversion has been resolved.)*
+**Headline result** (fine mesh, stationary ground, matching the experimental configuration):
+`Cd = 0.27908` — inside the stilt-corrected experimental band — and `Cl = +0.35525`, **+3.0%** from
+the measured value.
+
+> ⚠️ **One open issue remains — see [Known Issues](#known-issues).** The wake comparison has been
+> withdrawn pending re-export of the CFD profiles at the correct experimental stations. The Cl sign
+> inversion and the ground-condition mismatch have both been resolved, and are documented there
+> rather than deleted.
 
 ---
 
@@ -49,7 +53,7 @@ Upstream: 5H | Downstream: 15H | Lateral: 5H | Top: 5H
 | Wall treatment | Wall functions (y⁺ ≈ 15–30) |
 | BL layers | 8, AR = 40, growth rate 1.2 |
 | Inlet velocity | 40 m/s |
-| Ground | Moving wall, 40 m/s ⚠️ (experiments used a stationary floor — [issue 3](#known-issues)) |
+| Ground | **Stationary wall** (matching the experiments — see [issue 3](#known-issues); mesh independence study was run on a moving wall) |
 | Symmetry | Half model (z = 0 plane) |
 
 <p align="center">
@@ -157,17 +161,22 @@ is how the sign error in [issue 1](#known-issues) was caught.
 
 ## Validation vs. Experiment
 
+Final configuration — fine mesh, **stationary ground** (matching the experiments), sign-corrected Cl:
+
 | | CFD (fine mesh) | Experiment | Error |
 |-|----------------|------------|-------|
-| Cd (vs. stilt-corrected ref.) | 0.2699 | 0.2735 – 0.2822 | **−1.3% to −4.4%** |
-| Cl (sign-corrected) | +0.32319 | +0.345 (Meile 2011) | **−6.3%** ⚠️ not like-for-like |
+| Cd (vs. stilt-corrected ref.) | **0.27908** | 0.2735 – 0.2822 | **within range** (−1.1% to +2.0%) |
+| Cd (vs. raw, stilted model) | 0.27908 | 0.298 ± 0.5% (Meile 2016) | −6.4% |
+| Cl | **+0.35525** | +0.345 (Meile 2011) | **+3.0%** |
 
-> Cd underprediction is consistent with known k-ω SST + wall function limitations for separated
-> bluff-body aerodynamics. Crucially, the fine-mesh GCI is 0.77% — the solution *is* mesh
-> independent, so the residual deviation is model error, not a resolution problem.
->
-> The Cl sign error has been fixed (issue 1), but the comparison remains **moving-ground CFD against
-> fixed-ground experiment** (issue 3), so the −6.3% is not a clean validation figure.
+Both coefficients agree with experiment once the two like-for-like corrections are applied — the
+geometry difference (no stilts on the CFD model) and the ground condition (stationary, as in the
+tunnels). Reaching this required fixing two setup errors rather than tuning the physics; see
+[Known Issues](#known-issues) for both, kept on the record.
+
+> The fine-mesh GCI is 0.77%, so the solution is mesh independent and these residuals are physical
+> rather than numerical. For reference, the earlier moving-ground configuration gave Cd = 0.2699 and
+> Cl = +0.32319 — the ground condition alone accounts for a 9.9% shift in Cl.
 
 ---
 
@@ -196,9 +205,9 @@ converged solutions. No re-iteration was needed, so the flow fields are unchange
 The corrected magnitudes match the originals to five significant figures — confirming the sign was
 the only defect. All three meshes now agree on both sign and magnitude.
 
-> ⚠️ **This does not by itself validate Cl.** The corrected +0.323 is a *moving-ground* result being
-> compared against a *fixed-ground* measurement — see issue 3. The −6.3% residual is not yet
-> attributable to turbulence modelling.
+> The corrected +0.323 is still a *moving-ground* result compared against a *fixed-ground*
+> measurement. Matching the ground condition (issue 3) subsequently moved it to **+0.35525**,
+> i.e. **+3.0%** from experiment.
 
 **2. The wake comparison was withdrawn (not corrected).**
 An earlier revision plotted CFD wake profiles against a hand-entered "Lienhart & Becker" table at
@@ -217,9 +226,9 @@ Fixing the reference alone wouldn't have made the comparison valid, so it was re
 ERCOFTAC data is now in `data/ercoftac/` and `scripts/ercoftac_wake_reference.py` reads it directly.
 **Next step:** re-export the CFD symmetry-plane profiles at the four experimental stations.
 
-**3. The ground boundary condition does not match either experiment.**
-This CFD uses a **moving wall at 40 m/s** to emulate a rolling road. Both experimental sources used
-here ran on a **stationary floor**:
+**3. Ground boundary condition mismatch — ✅ RESOLVED.**
+The original CFD used a **moving wall at 40 m/s** to emulate a rolling road. Both experimental
+sources used here ran on a **stationary floor**:
 
 | Source | Facility | Ground |
 |---|---|---|
@@ -231,15 +240,35 @@ fixed and a moving ground and found the moving plane thins the underbody boundar
 underbody flow speed, and shifts the near-wake vortex structure — which acts directly on the
 underbody pressure that sets **Cl**, the very coefficient flagged in issue 1.
 
-So the Cl comparison in this README is **not like-for-like**, in addition to the sign problem: the
-sign-corrected +0.323 against Meile's +0.345 mixes a moving-ground CFD with a fixed-ground
-measurement. The residual −6.3% cannot be attributed to turbulence modelling until the ground
-condition is matched. (SimFlow's stationary-ground reference case for this geometry reports
-Cl = +0.355, i.e. the gap narrows in the direction this argument predicts.) Cd is less sensitive but
-not immune.
+**Resolution.** The fine mesh was rerun with the ground set to a stationary wall, restarted from the
+converged moving-ground solution with **no other setting changed**, so the ground condition is the
+single isolated variable. It reconverged in 70–80 iterations (residuals ~10⁻⁶):
 
-**Action:** rerun the fine mesh with the ground set to a stationary wall, restarting from the
-converged moving-ground solution and changing nothing else, then report both.
+| | Moving ground | **Stationary ground** | Experiment | Deviation (stationary) |
+|---|---|---|---|---|
+| **Cl** | +0.32319 | **+0.35525** | +0.345 (Meile 2011) | **+3.0%** |
+| **Cd** | 0.2699 | **0.27908** | 0.2735 – 0.2822 (stilt-corrected) | **within the range** |
+
+Matching the ground condition improved both coefficients:
+
+- **Cl** moved from −6.3% to **+3.0%** of the measured value — less than half the deviation, and now
+  slightly *above* rather than below experiment. It also lands on **+0.355**, the value SimFlow's
+  independent stationary-ground reference case reports for this geometry.
+- **Cd** rose to 0.27908, placing it inside the stilt-corrected experimental band (0.2735–0.2822)
+  rather than below it.
+- **Cl changed by 9.9%, Cd by only 3.4%.** Lift is roughly three times more sensitive to the ground
+  condition than drag — exactly what Strachan's mechanism predicts, since the underbody pressure it
+  perturbs acts primarily on the vertical force.
+
+The practical conclusion: a meaningful part of what would otherwise have been written off as
+"k-ω SST limitations" was a **boundary-condition mismatch**, not turbulence modelling. With the
+ground condition matched and the stilt difference accounted for, the fine mesh agrees with
+experiment to +3.0% on Cl and to within the reference band on Cd.
+
+> **Scope.** Only the fine mesh was rerun on a stationary ground; the mesh independence study
+> (GCI = 0.77%) was carried out on the moving-ground configuration. The GCI is a property of the
+> spatial discretisation and no mesh parameter changed, so it is expected to carry over, but this
+> has not been demonstrated.
 
 ### Experimental Wake Reference
 

@@ -106,7 +106,7 @@ Surface & Type & Value \\
 \midrule
 Inlet & Velocity inlet & $U_\infty = \SI{40}{m/s}$, $TI = 0.2\%$ \\
 Outlet & Pressure outlet & $0~\si{Pa}$ gauge \\
-Ground & Moving wall & $U = \SI{40}{m/s}$ (streamwise) \\
+Ground & Stationary wall & $U = 0$ (final configuration)\,$^\dagger$ \\
 Side / Top & Symmetry & — \\
 Symmetry plane ($z=0$) & Symmetry & — \\
 Body surface & No-slip wall & $U = 0$ \\
@@ -115,9 +115,10 @@ Body surface & No-slip wall & $U = 0$ \\
 \end{table}
 
 \noindent
-\textbf{Note.} The moving-wall ground emulates a rolling road, whereas both experiments used for
-validation ran over a stationary floor. This mismatch affects the lift comparison and is discussed
-in Sec.~\ref{sec:ground_disc}.
+$^\dagger$\,The ground was initially specified as a moving wall at $U = \SI{40}{m/s}$, emulating a
+rolling road. Both reference experiments in fact ran over a stationary floor; the condition was
+corrected and the fine mesh rerun. The mesh independence study (Sec.~\ref{sec:mesh_independence})
+was carried out in the original moving-ground configuration. See Sec.~\ref{sec:ground_disc}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Mesh Strategy}
@@ -263,6 +264,7 @@ Convergence — force monitors & $\Delta C_d < 0.001$ over last 200 iterations \
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Mesh Independence Study}
+\label{sec:mesh_independence}
 
 \subsection{GCI Methodology}
 
@@ -310,7 +312,9 @@ the fine-grid convergence index are then
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.55\linewidth]{results/medium/cd_cl.png}
-  \caption{Medium mesh: $C_d = 0.280$, $C_l = -0.323$.}
+  \caption{Medium mesh: $C_d = 0.280$. The monitor shows $C_l = -0.323$ as originally reported; the
+  force-vector sign error was identified subsequently and the corrected value is $+0.32349$
+  (Sec.~\ref{sec:cl_disc}). Moving-ground configuration.}
   \label{fig:medium}
 \end{figure}
 
@@ -325,7 +329,10 @@ the fine-grid convergence index are then
     \includegraphics[width=\linewidth]{results/fine/screenshots/cd_cl_final.png}
     \caption{Final converged values}
   \end{subfigure}
-  \caption{Fine mesh: $C_d = 0.270$, $C_l = -0.323$.}
+  \caption{Fine mesh: $C_d = 0.270$. As with the medium mesh, the monitor shows the pre-correction
+  $C_l = -0.323$; the corrected value is $+0.32319$ (Sec.~\ref{sec:cl_disc}). Moving-ground
+  configuration — the stationary-ground rerun gives $C_d = 0.27908$, $C_l = +0.35525$
+  (Sec.~\ref{sec:ground_disc}).}
   \label{fig:fine}
 \end{figure}
 
@@ -355,8 +362,10 @@ experiment in which the body is mounted on four support stilts, and is therefore
 comparison. Gutierrez et al.~\cite{gutierrez2020} decompose the drag by surface (their Table~3) and
 report a stilt contribution of $\Delta C_d = 0.0158$ (RSM) to $0.0245$ ($k$-$\omega$ Standard).
 Subtracting this from the measured value gives an effective stilt-free reference of
-$C_d = 0.2735$–$0.2822$, against which the present fine-mesh result of $0.2699$ deviates by only
-$-1.3\%$ to $-4.4\%$. This is the comparison the geometry actually supports.
+$C_d = 0.2735$–$0.2822$, against which the moving-ground fine-mesh result of $0.2699$ deviates by
+only $-1.3\%$ to $-4.4\%$. This is the comparison the geometry actually supports. Correcting the
+ground condition as well (Sec.~\ref{sec:ground_disc}) raises the fine-mesh value to $0.27908$,
+placing it inside this band.
 
 \noindent
 Because the apparent order $p = 3.53$ exceeds the formal second-order accuracy of the
@@ -384,17 +393,19 @@ self-consistent estimate for this mesh family.
 
 \begin{table}[H]
 \centering
-\caption{Fine-mesh aerodynamic coefficients vs.\ experimental reference.}
+\caption{Fine-mesh aerodynamic coefficients vs.\ experimental reference, in the final
+configuration: stationary ground (matching the tunnels) with the lift force vector corrected.}
 \begin{tabular}{lccc}
 \toprule
 Quantity & CFD (fine) & Experiment & Error \\
 \midrule
-$C_d$ (raw, vs.\ stilted model)      & 0.2699 & $0.298\pm0.005$~\cite{meile2016} & $-9.4\%$ \\
-$C_d$ (vs.\ stilt-corrected ref.)    & 0.2699 & $0.2735$–$0.2822$ & $-1.3\%$ to $-4.4\%$ \\
-$C_l$ (sign corrected)                & $+0.32319$$^{\,\dagger}$ & $+0.345$~\cite{meile2011} & $-6.3\%$ \\
+$C_d$ (vs.\ stilt-corrected ref.)    & $\mathbf{0.27908}$ & $0.2735$–$0.2822$ & \textbf{within range} \\
+$C_d$ (raw, vs.\ stilted model)      & 0.27908 & $0.298\pm0.5\%$~\cite{meile2016} & $-6.4\%$ \\
+$C_l$                                 & $\mathbf{+0.35525}$ & $+0.345$~\cite{meile2011} & $\mathbf{+3.0\%}$ \\
 \bottomrule
-\multicolumn{4}{l}{\small $^{\dagger}$The force-vector sign error has been corrected (Sec.~\ref{sec:cl_disc}). The comparison is}\\
-\multicolumn{4}{l}{\small \phantom{$^{\dagger}$}nonetheless moving-ground CFD against a fixed-ground experiment — see Sec.~\ref{sec:ground_disc}.}
+\multicolumn{4}{l}{\small Reaching this required two setup corrections, not physics tuning: the lift force vector}\\
+\multicolumn{4}{l}{\small (Sec.~\ref{sec:cl_disc}) and the ground boundary condition (Sec.~\ref{sec:ground_disc}). On the original}\\
+\multicolumn{4}{l}{\small moving-ground configuration the same mesh gave $C_d = 0.2699$ and $C_l = +0.32319$.}
 \end{tabular}
 \end{table}
 
@@ -487,11 +498,11 @@ the $C_d$ deviation.
 moving-ground result compared against a fixed-ground measurement, so the residual cannot yet be
 attributed to turbulence modelling — see Sec.~\ref{sec:ground_disc}.
 
-\subsection{Ground Boundary Condition — Open Issue}
+\subsection{Ground Boundary Condition — Mismatch Identified and Corrected}
 \label{sec:ground_disc}
 
-\textbf{The ground condition simulated here does not match either experiment it is compared
-against.} This study applies a moving wall at $U = \SI{40}{m/s}$ (Table~1), emulating a rolling
+\textbf{The ground condition originally simulated did not match either experiment it was compared
+against.} The initial configuration applied a moving wall at $U = \SI{40}{m/s}$, emulating a rolling
 road. Both experimental sources ran over a \emph{stationary} floor:
 
 \begin{table}[H]
@@ -515,16 +526,52 @@ layer, increases the underbody flow speed, and displaces the near-wake vortex st
 precisely the mechanisms that set the underbody static pressure — and therefore $C_l$, the
 coefficient already flagged in Sec.~\ref{sec:cl_disc}.
 
-The consequence is that the lift comparison is doubly compromised: beyond the sign error, the
-sign-corrected $+0.323$ is a \emph{moving-ground} CFD result being measured against a
-\emph{fixed-ground} experiment. The residual $-6.3\%$ therefore cannot be attributed to turbulence
-modelling until the ground condition is matched; part of it is a boundary-condition mismatch. $C_d$
-is less sensitive to the ground state than $C_l$, but is not immune either.
+\subsubsection*{Corrected configuration}
 
-\textbf{Action required:} rerun the fine mesh with the ground boundary set to a stationary wall,
-restarted from the converged moving-ground solution with no other setting altered, and report both
-values. This isolates the ground condition as the single changed variable and makes the resulting
-comparison like-for-like.
+The fine mesh was therefore rerun with the ground boundary set to a stationary wall, restarted from
+the converged moving-ground solution with \textbf{no other setting altered}. The ground condition is
+thus the single isolated variable, and the comparison becomes like-for-like. The solution
+reconverged within 70--80 iterations to residuals of order $10^{-6}$.
+
+\begin{table}[H]
+\centering
+\caption{Effect of the ground boundary condition on the fine-mesh force coefficients.}
+\label{tab:ground_effect}
+\begin{tabular}{lccc}
+\toprule
+ & Moving ground & Stationary ground & Experiment \\
+\midrule
+$C_l$ & $+0.32319$ & $\mathbf{+0.35525}$ & $+0.345$~\cite{meile2011} \\
+$C_d$ & $0.2699$   & $\mathbf{0.27908}$  & $0.2735$–$0.2822$ (stilt-corr.) \\
+\midrule
+$C_l$ deviation & $-6.3\%$ & $\mathbf{+3.0\%}$ & — \\
+$C_d$ deviation & $-1.3\%$ to $-4.4\%$ & \textbf{within range} & — \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent
+Matching the ground condition improves both coefficients. $C_l$ moves from $-6.3\%$ to $+3.0\%$ of
+the measured value — less than half the deviation, and now marginally above rather than below
+experiment. It also coincides with $+0.355$, the value reported by an independent stationary-ground
+reference computation for this geometry. $C_d$ rises into the stilt-corrected experimental band
+rather than sitting below it.
+
+The relative magnitudes are themselves evidence for the mechanism. $C_l$ changes by $9.9\%$ against
+only $3.4\%$ for $C_d$: lift is roughly three times more sensitive to the ground state than drag.
+This is precisely what Strachan et al.~\cite{strachan2007} would predict, since the underbody
+pressure field their moving plane perturbs acts principally on the \emph{vertical} force.
+
+The wider methodological point is that a substantial share of what could readily have been
+attributed to ``$k$-$\omega$ SST limitations'' was in fact a boundary-condition mismatch. With the
+ground condition matched and the stilt geometry difference accounted for, the fine mesh reproduces
+the experiment to $+3.0\%$ in $C_l$ and to within the reference band in $C_d$ — without any change
+to the turbulence model or its coefficients.
+
+\textbf{Scope of the correction.} Only the fine mesh was rerun on a stationary ground; the mesh
+independence study was performed on the moving-ground configuration. Since the GCI is a property of
+the spatial discretisation and no mesh parameter was altered, it is expected to carry over, but this
+has not been demonstrated and is left as a caveat rather than a claim.
 
 \subsection{Mesh Independence}
 The apparent order $p = 3.53$ exceeds the formal second-order accuracy of the discretisation
@@ -572,10 +619,10 @@ step; no wake validation claim is made in this revision.
   \item Mesh independence is achieved on the fine mesh: $\text{GCI}_\text{fine} = 0.77\%$ ($2.30\%$
   if $p$ is fixed at the theoretical second order), with the asymptotic range check satisfied
   ($0.96$). The Richardson-extrapolated value is $C_d = 0.2682$.
-  \item Against a stilt-corrected experimental reference, $C_d = 0.270$ underpredicts by
-  $1.3$–$4.4\%$. Since the numerical uncertainty is below $1\%$, this residual is attributable to
-  \emph{modelling} error — the known limitations of $k$-$\omega$ SST with wall functions on
-  separated bluff-body flow — rather than to insufficient mesh resolution.
+  \item In the final configuration — stationary ground, matching the experiments — the fine mesh
+  gives $C_d = 0.27908$, inside the stilt-corrected experimental band ($0.2735$–$0.2822$), and
+  $C_l = +0.35525$, within $+3.0\%$ of the measured $+0.345$. Since the numerical uncertainty is
+  below $1\%$, these residuals are physical rather than a resolution artefact.
   \item Comparing a stilt-free geometry directly against the measured value inflates the apparent
   error to $9.4\%$. Likewise, the coarse mesh appears to agree almost exactly with experiment
   ($+0.3\%$) purely through compensating errors. Both are reminders that a validation claim is only
@@ -585,11 +632,14 @@ step; no wake validation claim is made in this revision.
   Re-extracting $C_l$ from the existing converged solutions gives $+0.32349$ (medium) and $+0.32319$
   (fine), recovering the original magnitudes to five significant figures and bringing all three
   meshes into agreement on sign and magnitude (Sec.~\ref{sec:cl_disc}).
-  \item The ground boundary condition (moving wall at freestream speed) matches neither reference
-  experiment, both of which used a stationary floor. Since the moving ground alters exactly the
-  underbody flow that sets the lift, the $C_l$ comparison is not like-for-like and the residual
-  deviation cannot yet be assigned to turbulence modelling. A stationary-ground rerun is required
-  (Sec.~\ref{sec:ground_disc}).
+  \item The ground boundary condition had been specified as a moving wall at freestream speed, while
+  both reference experiments used a stationary floor. Rerunning the fine mesh with a stationary
+  ground — the only altered setting — moved $C_l$ from $-6.3\%$ to $+3.0\%$ of the measured value
+  and lifted $C_d$ into the stilt-corrected band. Lift proved about three times more sensitive to
+  the ground state than drag ($9.9\%$ against $3.4\%$), consistent with the underbody-pressure
+  mechanism reported by Strachan et al.~\cite{strachan2007}. A material share of the deviation that
+  might otherwise have been ascribed to turbulence modelling was therefore a boundary-condition
+  mismatch (Sec.~\ref{sec:ground_disc}).
   \item The wake comparison presented in an earlier revision has been withdrawn: its experimental
   reference did not correspond to the actual measurements, and the computed profiles carry no
   recorded station coordinate (Sec.~\ref{sec:wake_disc}). The genuine ERCOFTAC Case 082 data is now
